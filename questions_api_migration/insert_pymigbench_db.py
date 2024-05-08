@@ -56,7 +56,7 @@ def fetch_commit_hunks(commit_url):
             
             return hunks
         elif response.status_code in (403, 429):
-            # GitHub API rate limit or too many requests, retry with exponential backoff
+            # GitHub API rate limit or too many requests
             retry_after = int(response.headers.get('Retry-After', 0))
             wait_time = retry_after + 1
             print(f"Rate limit reached. Waiting for {wait_time} before we rety...")
