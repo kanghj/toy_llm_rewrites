@@ -14,11 +14,10 @@ query = """
           `bigquery-public-data.stackoverflow.posts_questions` q
         WHERE
           LOWER(q.tags) LIKE '%python%'
-          AND (
-            LOWER(q.title) LIKE '%beginner%'
-            OR LOWER(q.title) LIKE '%basic%'
-            OR LOWER(q.body) LIKE '%beginner%'
-            OR LOWER(q.body) LIKE '%basic%'
+          AND
+          (
+            LOWER(q.title) NOT LIKE '%lxml%'
+            AND LOWER(q.body) NOT LIKE '%lxml%'
           )
       )
 
