@@ -30,13 +30,13 @@ def ask_question(query):
 
     
 
-    # print('===================')
-    # print("\nPrompt to LLM")
-    # print(final_prompt)
-    # print("Generated Answer:")
+    print('===================')
+    print("\nPrompt to LLM")
+    print(final_prompt[:300] + '...' if len(final_prompt) > 300 else final_prompt, flush=True)
+    print("Generated Answer:")
     rag_response = llm(final_prompt)
-    # print(rag_response)
-    # print('===================')
+    print(rag_response)
+    print('===================', flush=True)
 
     # if we didn't use RAG,
     no_rag_response = llm(query)
