@@ -30,22 +30,43 @@ def ask_question(query):
 
     
 
-    print('===================')
-    print("\nPrompt to LLM")
-    print(final_prompt)
-    print("Generated Answer:")
-    response = llm(final_prompt)
-    print(response)
-    print('===================')
+    # print('===================')
+    # print("\nPrompt to LLM")
+    # print(final_prompt)
+    # print("Generated Answer:")
+    rag_response = llm(final_prompt)
+    # print(rag_response)
+    # print('===================')
 
     # if we didn't use RAG,
-    response = llm(query)
-    print('response without RAG:')
-    print(response)
-    print('===================')
+    no_rag_response = llm(query)
+    # print('response without RAG:')
+    # print(no_rag_response)
+    # print('===================')
+    return (rag_response, no_rag_response)
 
-ask_question("""
-Python XML get immediate child elements only
-             
-        
-             """)
+# ask_question("""
+# Python XML get immediate child elements only
+#              """)
+
+import csv
+
+
+with open('query.csv', 'r') as i_f,\
+        open('response_rag.csv', 'w+') as o_f_rag,\
+        open('response_no_rag.csv', 'w+') as o_f_no_rag,\
+        open('query_responses.csv', 'w+') as full:
+    
+    reader = csv.reader(i_f)
+    writer_rag = csv.writer(o_f_rag)
+    writer_no_rag = csv.writer(o_f_no_rag)
+    writer_full = csv.writer(full)
+
+    next(reader)
+    print('===================')
+    for i, row in enumerate(reader):
+        rag, no_rag = ask_question(row[0])
+
+        writer_rag.writerow(rag)
+        writer_no_rag.writerow(no_rag)
+        writer_full.writerow([row[0], rag, no_rag])

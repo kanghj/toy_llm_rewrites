@@ -1,0 +1,1959 @@
+query,original_answer
+Clean Up HTML in Python: <p>I'm aggregating content from a few external sources and am finding that some of it contains errors in its HTML/DOM. A good example would be HTML missing closing tags or malformed tag attributes. Is there a way to clean up the errors in Python natively or any third party modules I could install? </p>,"<p>I am using <a href=""http://lxml.de/"" rel=""nofollow"">lxml</a> to convert HTML to proper (well-formed) XML:</p>
+
+<pre><code>from lxml import etree
+tree   = etree.HTML(input_text.replace('\r', ''))
+output_text = '\n'.join([ etree.tostring(stree, pretty_print=True, method=""xml"") 
+                          for stree in tree ])
+</code></pre>
+
+<p>... and doing lot of removing of 'dangerous elements' in the middle....</p>"
+Clean Up HTML in Python: <p>I'm aggregating content from a few external sources and am finding that some of it contains errors in its HTML/DOM. A good example would be HTML missing closing tags or malformed tag attributes. Is there a way to clean up the errors in Python natively or any third party modules I could install? </p>,"<p>An example of cleaning up HTML using the <a href=""http://lxml.de/api/lxml.html.clean.Cleaner-class.html"" rel=""nofollow noreferrer""><strong>lxml.html.clean.Cleaner</strong></a> module.</p>
+<p>Requires the <code>lxml</code> module — <code>pip install lxml</code> (it's a native module written in C so it might be faster than pure python solutions).</p>
+<pre class=""lang-python prettyprint-override""><code>import sys
+
+from lxml.html.clean import Cleaner
+
+
+def sanitize(dirty_html):
+    cleaner = Cleaner(page_structure=True,
+                  meta=True,
+                  embedded=True,
+                  links=True,
+                  style=True,
+                  processing_instructions=True,
+                  inline_style=True,
+                  scripts=True,
+                  javascript=True,
+                  comments=True,
+                  frames=True,
+                  forms=True,
+                  annoying_tags=True,
+                  remove_unknown_tags=True,
+                  safe_attrs_only=True,
+                  safe_attrs=frozenset(['src','color', 'href', 'title', 'class', 'name', 'id']),
+                  remove_tags=('span', 'font', 'div')
+                  )
+
+    return cleaner.clean_html(dirty_html)
+
+
+if __name__ == '__main__':
+
+    with open(sys.argv[1]) as fin:
+
+        print(sanitize(fin.read()))
+</code></pre>
+<p>Check out the <a href=""http://lxml.de/api/lxml.html.clean.Cleaner-class.html"" rel=""nofollow noreferrer""><strong>docs</strong></a> for a full list of options you can pass to the Cleaner.</p>"
+"Python parse xml with find or findall module: <p>I would like to parse this XML and display the result of the Memory and Swap</p>
+<pre><code>&lt;rpc&gt;
+&lt;show&gt;
+  &lt;memory&gt;
+    &lt;physical-memory&gt;
+      &lt;memory-info&gt;
+        &lt;type&gt;Memory&lt;/type&gt;
+        &lt;total-in-kb&gt;3524384&lt;/total-in-kb&gt;
+        &lt;used-in-kb&gt;3401028&lt;/used-in-kb&gt;
+      &lt;/memory-info&gt;
+      &lt;memory-info&gt;
+        &lt;type&gt;Swap&lt;/type&gt;
+        &lt;total-in-kb&gt;0&lt;/total-in-kb&gt;
+        &lt;used-in-kb&gt;0&lt;/used-in-kb&gt;
+      &lt;/memory-info&gt;
+    &lt;/physical-memory&gt;
+  &lt;/memory&gt;
+&lt;/show&gt;
+</code></pre>
+  
+<p><code>tree=et.fromstring('file.xml')</code></p>
+<p><code>print(tree.find('rpc/show/memory/physical-memory/memory-info/type[@test='Memory']/total-in-kb).text')</code></p>
+<p>is it a way to do like that : just in one line with find of findall ?
+as I have a lot of metric to collect, I would like to use a liste of them and avoid to do a loop for some of them.</p>","<p>Solution using lxml:</p>
+<pre><code>from lxml import etree as et
+
+root = et.fromstring(xml)
+xpath = '//memory-info[./type/text()=$type]//total-in-kb/text()'
+memory = root.xpath(xpath, type='Memory')
+swap = root.xpath(xpath, type='Swap')
+print(memory, swap)
+</code></pre>
+<p>For finding both at once:</p>
+<pre><code>from lxml import etree as et
+
+root = et.fromstring(xml)
+xpath = '//memory-info[./type/text()=&quot;Memory&quot; or ./type/text()=&quot;Swap&quot;]//total-in-kb/text()'
+lst = root.xpath(xpath)
+print(lst)
+</code></pre>"
+"Retrieve Amazon Reviews for a particular product: <p>I'm currently working on a research project which need to analyze reviews of a particular product and get an overall idea about the product. </p>
+
+<p>I heard that amazon is a good place to get product reviews/comments. Is there any way to retrieve those user reviews/comments from Amazon via an API?? I tried several python codes but it doesn't work.. Do i need to write a spider if there is no API to retrieve data?</p>
+
+<p>Are there any approaches/places to retrieve user reviews for a given product?</p>","<p>www.Scrapehero.com has a great tutorial on how to scrape Amazon product details: <a href=""https://www.scrapehero.com/tutorial-how-to-scrape-amazon-product-details-using-python/"" rel=""nofollow noreferrer"">How To Scrape Amazon Product Details and Pricing using Python</a></p>
+
+<p>The complete plain text code they use is ...
+Products are identified by their ASIN so change the array values to the products you are interested in watching.</p>
+
+<pre><code>from lxml import html  
+import csv,os,json
+import requests
+from exceptions import ValueError
+from time import sleep
+
+def AmzonParser(url):
+    headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64)    AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.90 Safari/537.36'}
+page = requests.get(url,headers=headers)
+while True:
+    sleep(3)
+    try:
+        doc = html.fromstring(page.content)
+        XPATH_NAME = '//h1[@id=""title""]//text()'
+        XPATH_SALE_PRICE = '//span[contains(@id,""ourprice"") or contains(@id,""saleprice"")]/text()'
+        XPATH_ORIGINAL_PRICE = '//td[contains(text(),""List Price"") or contains(text(),""M.R.P"") or contains(text(),""Price"")]/following-sibling::td/text()'
+        XPATH_CATEGORY = '//a[@class=""a-link-normal a-color-tertiary""]//text()'
+        XPATH_AVAILABILITY = '//div[@id=""availability""]//text()'
+
+        RAW_NAME = doc.xpath(XPATH_NAME)
+        RAW_SALE_PRICE = doc.xpath(XPATH_SALE_PRICE)
+        RAW_CATEGORY = doc.xpath(XPATH_CATEGORY)
+        RAW_ORIGINAL_PRICE = doc.xpath(XPATH_ORIGINAL_PRICE)
+        RAw_AVAILABILITY = doc.xpath(XPATH_AVAILABILITY)
+
+        NAME = ' '.join(''.join(RAW_NAME).split()) if RAW_NAME else None
+        SALE_PRICE = ' '.join(''.join(RAW_SALE_PRICE).split()).strip() if RAW_SALE_PRICE else None
+        CATEGORY = ' &gt; '.join([i.strip() for i in RAW_CATEGORY]) if RAW_CATEGORY else None
+        ORIGINAL_PRICE = ''.join(RAW_ORIGINAL_PRICE).strip() if RAW_ORIGINAL_PRICE else None
+        AVAILABILITY = ''.join(RAw_AVAILABILITY).strip() if RAw_AVAILABILITY else None
+
+        if not ORIGINAL_PRICE:
+            ORIGINAL_PRICE = SALE_PRICE
+
+        if page.status_code!=200:
+            raise ValueError('captha')
+        data = {
+                'NAME':NAME,
+                'SALE_PRICE':SALE_PRICE,
+                'CATEGORY':CATEGORY,
+                'ORIGINAL_PRICE':ORIGINAL_PRICE,
+                'AVAILABILITY':AVAILABILITY,
+                'URL':url,
+                }
+
+        return data
+    except Exception as e:
+        print e
+
+def ReadAsin():
+# AsinList = csv.DictReader(open(os.path.join(os.path.dirname(__file__),""Asinfeed.csv"")))
+AsinList = ['B0046UR4F4',
+'B00JGTVU5A',
+'B00GJYCIVK',
+'B00EPGK7CQ',
+'B00EPGKA4G',
+'B00YW5DLB4',
+'B00KGD0628',
+'B00O9A48N2',
+'B00O9A4MEW',
+'B00UZKG8QU',]
+extracted_data = []
+for i in AsinList:
+    url = ""http://www.amazon.com/dp/""+i
+    print ""Processing: ""+url
+    extracted_data.append(AmzonParser(url))
+    sleep(5)
+f=open('data.json','w')
+json.dump(extracted_data,f,indent=4)
+
+
+if __name__ == ""__main__"":
+ReadAsin()
+</code></pre>"
+"XML Tree parsing with condition in Python: <p>Here is my XML structure:    </p>
+
+<pre><code>&lt;images&gt;
+  &lt;image&gt;
+&lt;name&gt;brain tumer&lt;/name&gt;
+&lt;location&gt;images/brain_tumer1.jpg&lt;/location&gt;
+&lt;annotations&gt;
+    &lt;comment&gt;
+        &lt;name&gt;Patient 0 Brain Tumer&lt;/name&gt;
+        &lt;description&gt;
+            This is a tumer in the brain
+        &lt;/description&gt;
+    &lt;/comment&gt;
+&lt;/annotations&gt;
+&lt;/image&gt;
+&lt;image&gt;
+&lt;name&gt;brain tumer&lt;/name&gt;
+&lt;location&gt;img/brain_tumer2.jpg&lt;/location&gt;
+&lt;annotations&gt;
+    &lt;comment&gt;
+        &lt;name&gt;Patient 1 Brain Tumer&lt;/name&gt;
+        &lt;description&gt;
+            This is a larger tumer in the brain
+        &lt;/description&gt;
+    &lt;/comment&gt;
+&lt;/annotations&gt;
+&lt;/image&gt;
+&lt;/images&gt;
+</code></pre>
+
+<p>I am new to Python and wanted to know if retrieving the location data based on the comment:name data was posible? In other words here is my code:</p>
+
+<pre><code>for itr1 in itemlist :
+            commentItemList = itr1.getElementsByTagName('name')
+
+            for itr2 in commentItemList:
+                if(itr2.firstChild.nodeValue == ""Patient 1 Liver Tumer""):
+                    commentName = itr2.firstChild.nodeValue
+                    Loacation = it1.secondChild.nodeValue
+</code></pre>
+
+<p>Any recommendations or am i missing somthing here?
+Thank you in advance.</p>","<p>Just to compare the easiness of solutions, here's how you can do the same with <a href=""http://lxml.de/"" rel=""nofollow"">lxml</a>:</p>
+
+<pre><code>from lxml import etree
+
+data = """"""
+your xml goes here
+""""""
+
+root = etree.fromstring(data)
+print root.xpath('//image[.//comment/name = ""Patient 1 Brain Tumer""]/location/text()')[0]
+</code></pre>
+
+<p>prints:</p>
+
+<pre><code>img/brain_tumer2.jpg
+</code></pre>
+
+<p>Basically, one line vs six.</p>"
+"How to extract information from ODP accurately?: <p>I am building a search engine in python.</p>
+
+<p>I have heard that Google fetches the description of pages from the ODP (<a href=""http://dmoz.org"" rel=""nofollow"">Open Directory Project</a>) in case Google can't figure out the description using the meta data from the page... I wanted to do something similar.</p>
+
+<p>ODP is an online directory from Mozilla which has descriptions of pages on the net, so I wanted to fetch the descriptions for my search results from the ODP. How do I get the accurate description of a particular url from ODP, and return the python type ""None"" if I couldn't find it (Which means ODP has no idea what page i am looking for)?</p>
+
+<p>PS. there is a url called <a href=""http://dmoz.org/search?q=Your+Search+Params"" rel=""nofollow"">http://dmoz.org/search?q=Your+Search+Params</a> but I dont know how to extract information from there.</p>","<p>To use ODP data, you'd <a href=""http://rdf.dmoz.org/"" rel=""nofollow"">download the RDF data dump</a>. RDF is a XML format; you'd index that dump to map urls to descriptions; I'd use a SQL database for this.</p>
+
+<p>Note that URLs can be present in multiple locations in the dump. Stack Overflow is listed at twice, for example. Google uses the text from <a href=""http://www.dmoz.org/Reference/Ask_an_Expert/Computers_and_Technology/"" rel=""nofollow"">this entry</a> as the site description, Bing uses <a href=""http://www.dmoz.org/Computers/Programming/Resources/Chats_and_Forums/"" rel=""nofollow"">this one instead</a>.</p>
+
+<p>The data dump is of course rather large. Use sensible tools such as the ElementTree <a href=""http://docs.python.org/2/library/xml.etree.elementtree.html#xml.etree.ElementTree.iterparse"" rel=""nofollow""><code>iterparse()</code> method</a> to parse the data set iteratively as you add entries to your database. You really only need to look for the <code>&lt;ExternalPage&gt;</code> elements, taking the <code>&lt;d:Title&gt;</code> and <code>&lt;d:Description&gt;</code> entries underneath.</p>
+
+<p>Using <code>lxml</code> (a faster and more complete ElementTree implementation) that'd look like:</p>
+
+<pre><code>from lxml import etree as ET
+import gzip
+import sqlite3
+
+conn = sqlite3.connect('/path/to/database')
+
+# create table
+with conn:
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS odp_urls 
+        (url text primary key, title text, description text)''')
+
+count = 0
+nsmap = {'d': 'http://purl.org/dc/elements/1.0/'}
+with gzip.open('content.rdf.u8.gz', 'rb') as content, conn:
+    cursor = conn.cursor()
+    for event, element in ET.iterparse(content, tag='{http://dmoz.org/rdf/}ExternalPage'):
+        url = element.attrib['about']
+        title = element.xpath('d:Title/text()', namespaces=nsmap)
+        description = element.xpath('d:Description/text()', namespaces=nsmap)
+        title, description = title and title[0] or '', description and description[0] or ''
+
+        # no longer need this, remove from memory again, as well as any preceding siblings
+        elem.clear()
+        while elem.getprevious() is not None:
+            del elem.getparent()[0]
+
+        cursor.execute('INSERT OR REPLACE INTO odp_urls VALUES (?, ?, ?)',
+            (url, title, description))
+        count += 1
+        if count % 1000 == 0:
+            print 'Processed {} items'.format(count)
+</code></pre>"
+"looping Row and scraping data taking input from excel file: <p>i want to scrape web data using input values from excel and scraping web for each row_value taken and save the output to same excel file.</p>
+
+<pre class=""lang-py prettyprint-override""><code>from bs4 import BeautifulSoup
+import requests 
+from urllib import request
+import os
+import pandas as pd
+
+
+ciks = pd.read_csv(""ciks.csv"")
+ciks.head()
+</code></pre>
+
+<p><em>output</em></p>
+
+<pre><code>    CIK
+0   1557822
+1   1598429
+2   1544670
+3   1574448
+4   1592290
+</code></pre>
+
+<p>then </p>
+
+<pre class=""lang-py prettyprint-override""><code>for x in ciks:
+    url=""https://www.sec.gov/cgi-bin/browse-edgar?CIK="" + x +""&amp;owner=exclude&amp;action=getcompany""
+    r = request.urlopen(url)
+    bytecode = r.read()
+    htmlstr = bytecode.decode()
+    soup = BeautifulSoup(bytecode)
+    t = soup.find('span',{'class':'companyName'})
+    print(t.text)
+</code></pre>
+
+<p>i got an erorr : 
+----> 9     print (t.text)</p>
+
+<p>AttributeError: 'NoneType' object has no attribute 'text'</p>
+
+<p>here, i want to scrape web data taking each row value as input from the CSV file.</p>","<p>It would be easier to convert the column values as list and then use it in the for loop - see solution below,</p>
+
+<pre><code>from bs4 import BeautifulSoup
+import requests 
+from urllib import request
+import os
+import pandas as pd
+#ciks = pd.read_csv(""ciks.csv"")
+df = pd.read_csv(""ciks.csv"")
+mylist = df['CIK'].tolist()# CIK is the column name
+
+company =[]
+for item in mylist:
+    print(item)
+    url=""https://www.sec.gov/cgi-bin/browse-edgar?CIK="" + str(item) +""&amp;owner=exclude&amp;action=getcompany""
+    r = request.urlopen(url)
+    bytecode = r.read()
+    htmlstr = bytecode.decode()
+    soup = BeautifulSoup(bytecode,features=""lxml"")
+    t = soup.find('span',{'class':'companyName'})
+    company.append(t.text)
+    print(t.text)
+df.assign(company= company)
+print(df)
+
+df.to_csv(""ciks.csv"")
+</code></pre>"
+"Trying to scrape a website but I don't get HTML content: <p>I'm trying to scrape this website but I don't get what I see in &quot;Inspect Elements&quot;. I feel like HTML content is hidden or something :</p>
+<pre><code>from bs4 import BeautifulSoup 
+import requests
+
+result = requests.get(&quot;https://groceries.asda.com/aisle/price-match/view-all-price-match/view-all-price-match/1215686354045-1215686354052-1215686354053&quot;)
+src = result.content
+soup = BeautifulSoup(src, 'html.parser')
+print(soup)
+</code></pre>
+<p><strong>This is what I see and what I want  in the inspect element  :</strong></p>
+<p><a href=""https://i.stack.imgur.com/EHniX.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/EHniX.png"" alt=""enter image description here"" /></a></p>
+<p>But what I get when I print the soup is something else ( please try to execute this code because the output will be long to paste it here )</p>","<p>The webpage is loaded dynamically via JS. So you can't see the the html content with the help of bs4. If your final aim is to scrape data then you can do that using <code>API</code> too. which is the robust along with the easiest way to grab data  using <code>requests</code> module only.</p>
+<p><strong>Example:</strong></p>
+<pre><code>import requests
+
+api_url = &quot;https://groceries.asda.com/api/bff/graphql&quot;
+payload= {&quot;requestorigin&quot;:&quot;gi&quot;,&quot;contract&quot;:&quot;web/cms/get-items&quot;,&quot;variables&quot;:{&quot;user_segments&quot;:[&quot;1259&quot;,&quot;1194&quot;,&quot;1140&quot;,&quot;1141&quot;,&quot;1182&quot;,&quot;1130&quot;,&quot;1128&quot;,&quot;1124&quot;,&quot;1126&quot;,&quot;1119&quot;,&quot;1123&quot;,&quot;1117&quot;,&quot;1112&quot;,&quot;1116&quot;,&quot;1109&quot;,&quot;1111&quot;,&quot;1102&quot;,&quot;1110&quot;,&quot;1097&quot;,&quot;1105&quot;,&quot;1100&quot;,&quot;1107&quot;,&quot;1098&quot;,&quot;1038&quot;,&quot;1087&quot;,&quot;1099&quot;,&quot;1070&quot;,&quot;1082&quot;,&quot;1067&quot;,&quot;1047&quot;,&quot;1059&quot;,&quot;1057&quot;,&quot;1055&quot;,&quot;1053&quot;,&quot;1043&quot;,&quot;1041&quot;,&quot;1042&quot;,&quot;1027&quot;,&quot;1023&quot;,&quot;1024&quot;,&quot;1020&quot;,&quot;1019&quot;,&quot;1007&quot;,&quot;1242&quot;,&quot;1241&quot;,&quot;1262&quot;,&quot;1239&quot;,&quot;1256&quot;,&quot;1245&quot;,&quot;1237&quot;,&quot;1263&quot;,&quot;1264&quot;,&quot;1233&quot;,&quot;1249&quot;,&quot;1260&quot;,&quot;1247&quot;,&quot;1238&quot;,&quot;1236&quot;,&quot;1227&quot;,&quot;1208&quot;,&quot;1220&quot;,&quot;1210&quot;,&quot;1172&quot;,&quot;1178&quot;,&quot;1222&quot;,&quot;1231&quot;,&quot;1217&quot;,&quot;1179&quot;,&quot;1225&quot;,&quot;1207&quot;,&quot;1167&quot;,&quot;1221&quot;,&quot;1219&quot;,&quot;1160&quot;,&quot;1180&quot;,&quot;1152&quot;,&quot;1213&quot;,&quot;1206&quot;,&quot;1176&quot;,&quot;1224&quot;,&quot;1165&quot;,&quot;1159&quot;,&quot;1209&quot;,&quot;1169&quot;,&quot;1144&quot;,&quot;1214&quot;,&quot;1177&quot;,&quot;1216&quot;,&quot;1196&quot;,&quot;1173&quot;,&quot;1186&quot;,&quot;1147&quot;,&quot;1183&quot;,&quot;1204&quot;,&quot;1174&quot;,&quot;1191&quot;,&quot;1201&quot;,&quot;1202&quot;,&quot;1190&quot;,&quot;1157&quot;,&quot;1198&quot;,&quot;1189&quot;,&quot;1166&quot;,&quot;1197&quot;,&quot;1150&quot;,&quot;1170&quot;,&quot;1184&quot;,&quot;1271&quot;,&quot;1278&quot;,&quot;1279&quot;,&quot;1269&quot;,&quot;1283&quot;,&quot;1284&quot;,&quot;1285&quot;,&quot;rmp_enabled_user&quot;,&quot;dp-False&quot;,&quot;wapp&quot;,&quot;store_4565&quot;,&quot;vp_M&quot;,&quot;anonymous&quot;,&quot;clothing_store_enabled&quot;,&quot;checkoutOptimization&quot;,&quot;NAV_UI&quot;,&quot;T003&quot;,&quot;T014&quot;],&quot;store_id&quot;:&quot;4565&quot;,&quot;page&quot;:2,&quot;page_size&quot;:60,&quot;request_origin&quot;:&quot;gi&quot;,&quot;type&quot;:&quot;content&quot;,&quot;ship_date&quot;:1658880000000,&quot;payload&quot;:{&quot;cacheable&quot;:True,&quot;hierarchy_id&quot;:&quot;1215686354045-1215686354052-1215686354053&quot;,&quot;filter_query&quot;:[]}}}
+headers={
+    'content-type': 'application/json',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+    'request-origin': 'gi'
+}
+data = requests.post(api_url,headers=headers,json=payload).json()
+
+for item in data['data']['tempo_items']['products']['items']:
+    print(item['item']['name'])
+</code></pre>
+<p><strong>Output:</strong></p>
+<pre><code>Fixodent Complete Denture Adhesive Original
+Surf Tropical Lily Concentrated Liquid Laundry Detergent 24 Washes
+Always Maxi Profresh Night Sanitary Towels Without Wings
+Pantene 3 Minute Miracle Repair&amp;Protect Hair Conditioner
+Garnier Ultimate Blends Coconut Oil Frizzy Hair Shampoo
+Pedigree Schmackos Strips Adult Dog Treats Fish Mix
+TRESemme Replenish &amp; Cleanse Conditioner
+Herbal Essences Hello Hydration Shampoo For Dry Hair
+Blistex Relief Cream
+Garnier Skin Active Micellar Cleansing Water Sensitive Skin       
+TRESemme Rich Moisture Conditioner
+Lemsip Max Day &amp; Night Cold &amp; Flu Relief Capsules
+Lenor In-Wash Scent Booster Spring Awakening
+Sudafed Congestion Headache Relief Day &amp; Night Capsules
+Halls Mentholyptus Extra Strong Lozenges 10 pack
+Panadol Advance Paracetamol Tablets x16
+Always Dailies Extra Protect Large Panty Liners
+Simple Kind To Skin Purifying Cleansing Lotion
+Nivea Gentle Exfoliating Face Scrub
+Simple Kind to Skin Refreshing Facial Wash Gel
+Pantene 3 Minute Miracle Smooth&amp;Sleek Hair Conditioner
+Olbas Oil Inhalant Decongestant
+Johnson's Bedtime Shampoo
+Huggies DryNites Pyjama Pants Girl 8-15 Years
+Garnier Belle Color 6 Natural Light Brown Permanent Hair Dye
+Westlab Pure Mineral Bathing Epsom Salt
+Herbal Essences Ignite My Colour Hair Conditioner For Coloured Hair
+Poligrip Denture Adhesive Ultra Fixative Cream
+Garnier Ultimate Blends Argan Oil &amp; Almond Cream Dry Hair Conditioner
+Halls Original Sugar Free Lozenges 10 pack
+Huggies DryNites Pyjama Pants Boy 8-15 Years
+Westlab Sleep Epsom &amp; Dead Sea Salts with Lavender &amp; Jasmine
+Herbal Essences Ignite My Colour Shampoo For Coloured Hair
+Westlab Mindful Epsom &amp; Himalayan Salts with Frankincense &amp; Bergamot
+Jolen Creme Bleach
+Garnier Belle Color 7.1 Natural Dark Ash Blonde Permanent Hair Dye
+Herbal Essences Dazzling Shine Hair Conditioner For All Hair Type
+Dettol Antibacterial Disinfectant Multi Surface Spray Lemon &amp; Lime
+Lemsip Cold &amp; Flu Lemon Flavour Sachets
+Toplife Puppy Formula Milk
+Westlab Pure Mineral Bathing Dead Sea Salt
+Misfits Nasher Sticks Adult Medium Dog Treats with Chicken and Beef
+Dove Deeply Nourishing Body Wash
+Dreamies Cat Treat Biscuits with Chicken Mega Pack
+Deep Freeze Cold Spray
+Tena Lady Discreet Mini Pads
+Pantene Pro-V Smooth &amp; Sleek 3in1 Shampoo
+Garnier Nutrisse 4.3 Dark Golden Brown Permanent Hair Dye
+Fixodent Plus Dual Power Denture Adhesive
+Beechams All In One Oral Solution 8 Doses 160ML
+Panadol Extra Advance 500mg/65mg Tablets x14
+Duck Fresh Brush Toilet Cleaning System Holder
+Oral-B Allrounder Black Manual Toothbrush x 3
+Dove Indulging Cream Bath Soak
+Garnier Ultimate Blends Honey Treasures Strengthening Conditioner
+Sudafed Sinus Max Strength Capsules
+Johnson's Baby Shampoo
+Halls Soothers Cherry Lozenges
+Rennie Spearmint Heartburn &amp; Indigestion Relief Tablets
+Huggies DryNites Pyjama Pants Boy 4-7 Years
+</code></pre>
+<p><strong>Selenium with bs4:</strong></p>
+<p>As API has no communication with HTML content So we can't get html content via API. The webpage is dynamic and bs4 can't render JS. So to get html content you can use selenium with bs4. The following code will produce the right html content from the page.</p>
+<pre><code>from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+import time
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+
+chrome_options = Options()
+chrome_options.add_argument(&quot;--no-sandbox&quot;)
+chrome_options.add_experimental_option(&quot;detach&quot;, True)
+# chrome_options.add_argument(&quot;--headless&quot;)
+
+webdriver_service = Service(&quot;./chromedriver&quot;) #Your chromedriver path
+driver = webdriver.Chrome(service=webdriver_service, options=chrome_options)
+url='https://groceries.asda.com/aisle/price-match/view-all-price-match/view-all-price-match/1215686354045-1215686354052-1215686354053'
+driver.get(url)
+driver.maximize_window()
+time.sleep(5)
+#accept cookie
+driver.find_element(By.XPATH,'//*[@id=&quot;onetrust-button-group-parent&quot;]/div/button[1]').click()
+time.sleep(2)
+soup=BeautifulSoup(driver.page_source,'lxml')
+html=soup.select_one('div.co-product-list &gt; ul:nth-child(1)')
+print(html.prettify())
+</code></pre>
+<p><strong>Output:</strong></p>
+<pre><code>&lt;li class=&quot;co-product__promo-icon-item&quot;&gt;
+       &lt;div class=&quot;co-product__promo-icon-image-cntr&quot;&gt;
+        &lt;button aria-label=&quot;show information on Smooth &amp;amp; Frizz Free&quot; class=&quot;asda-btn asda-btn--plain co-product__promo-icon-button&quot; data-auto-id=&quot;btnPromo&quot; type=&quot;button&quot;&gt;
+         &lt;picture class=&quot;asda-image picture&quot;&gt;
+          &lt;source srcset=&quot;https://ui.assets-asda.com/dm/_103_frizzfree?$icon-wapp$=&amp;amp;$Icon-wapp$=&quot;&gt;
+           &lt;img alt=&quot;Smooth &amp;amp; Frizz Free&quot; class=&quot;asda-img asda-image co-product__promo-icon-img&quot; data-auto-id=&quot;&quot; loading=&quot;lazy&quot; src=&quot;https://ui.assets-asda.com/dm/_103_frizzfree?$icon-wapp$=&amp;amp;$Icon-wapp$=&quot; title=&quot;Smooth &amp;amp; Frizz Free&quot;/&gt;
+          &lt;/source&gt;
+         &lt;/picture&gt;
+        &lt;/button&gt;
+       &lt;/div&gt;
+      &lt;/li&gt;
+     &lt;/ul&gt;
+    &lt;/div&gt;
+   &lt;/div&gt;
+   &lt;div class=&quot;co-item__col3&quot;&gt;
+    &lt;div class=&quot;co-item__price-container&quot;&gt;
+     &lt;span class=&quot;co-item__price-per-uom&quot;&gt;
+      &lt;strong class=&quot;co-product__price&quot;&gt;
+       &lt;span class=&quot;co-product__hidden-label&quot;&gt;
+        now
+       &lt;/span&gt;
+       £1.99
+      &lt;/strong&gt;
+      &lt;p class=&quot;co-item__price-per-uom-msg&quot;&gt;
+       &lt;span class=&quot;co-product__price-per-uom&quot;&gt;
+        (55.3p/100ml)
+       &lt;/span&gt;
+      &lt;/p&gt;
+     &lt;/span&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;co-item__quantity-container&quot;&gt;
+     &lt;div class=&quot;unavailable-banner&quot;&gt;
+      &lt;span class=&quot;asda-pill asda-pill--warning unavailable-banner__product-status&quot; data-auto-id=&quot;&quot;&gt;
+       OUT OF STOCK
+      &lt;/span&gt;
+      &lt;button aria-disabled=&quot;false&quot; class=&quot;asda-link asda-link--primary asda-link--standalone 
+asda-link--button unavailable-banner__see-alternatives&quot; data-auto-id=&quot;linkSeeAlternatives&quot; type=&quot;button&quot;&gt;
+       See alternatives
+      &lt;/button&gt;
+     &lt;/div&gt;
+    &lt;/div&gt;
+   &lt;/div&gt;
+  &lt;/div&gt;
+ &lt;/li&gt;
+</code></pre>
+<p>... so on</p>"
+"How to I save value (int) from a webpage and store it an array using Selenium-Python: <p>I want to store a couple of integers which are present in a webpage and store it in a array and then find mean/avg of all the values.</p>
+<p>I'm using</p>
+<pre><code>driver.find_element_by_xpath('some_Xpath').text()
+</code></pre>
+<p>you could suggest any other method as well.</p>
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-html lang-html prettyprint-override""><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;style&gt;
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;h2&gt;HTML Table&lt;/h2&gt;
+
+&lt;table&gt;
+  &lt;tr&gt;
+    &lt;th&gt;Company&lt;/th&gt;
+    &lt;th&gt;Contact&lt;/th&gt;
+    &lt;th&gt;Value&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Alfreds Futterkiste&lt;/td&gt;
+    &lt;td&gt;Maria Anders&lt;/td&gt;
+    &lt;td&gt;12&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Centro comercial Moctezuma&lt;/td&gt;
+    &lt;td&gt;Francisco Chang&lt;/td&gt;
+    &lt;td&gt;13&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Ernst Handel&lt;/td&gt;
+    &lt;td&gt;Roland Mendel&lt;/td&gt;
+    &lt;td&gt;14&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Island Trading&lt;/td&gt;
+    &lt;td&gt;Helen Bennett&lt;/td&gt;
+    &lt;td&gt;15&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Laughing Bacchus Winecellars&lt;/td&gt;
+    &lt;td&gt;Yoshi Tannamuri&lt;/td&gt;
+    &lt;td&gt;16&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Magazzini Alimentari Riuniti&lt;/td&gt;
+    &lt;td&gt;Giovanni Rovelli&lt;/td&gt;
+    &lt;td&gt;17&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+</div>
+</div>
+</p>
+<p>wish to copy the value and save it in an array
+I want this text to be saved in an array and then print it.
+I'm new to Selenium-python. Can someone help me.</p>
+<p>Thanks!</p>","<p>Be sure to use <code>find_elements</code> (whith an <strong>s</strong> to retrieve all the values) in Selenium.
+Based on your sample you should use :</p>
+<pre><code>ar=[int(val.text) for val in driver.find_elements_by_xpath('//tr/td[3]')]
+</code></pre>
+<p>Then compute the mean with (be sure to <code>import statistics</code>) :</p>
+<pre><code>print(statistics.mean(ar))
+</code></pre>
+<p>Piece of code (with <code>LXML</code>) :</p>
+<pre><code>data = &quot;&quot;&quot;your_html_data&quot;&quot;&quot;
+
+import statistics 
+import lxml.html
+tree = html.fromstring(data)
+
+# create arrays (two ways of doing it, &quot;ar1&quot; is the one you should use if you work with Selenium)
+ar1=[int(val.text) for val in tree.xpath(&quot;//tr/td[3]&quot;)]
+ar2=[int(val) for val in tree.xpath(&quot;//tr/td[3]/text()&quot;)]
+
+# display the arrays
+print(ar1)
+print(ar2)
+
+# display the means
+print(statistics.mean(ar1))
+print(statistics.mean(ar2))
+print(tree.xpath(&quot;sum(//tr/td[3]) div count(//tr/td[3])&quot;))
+</code></pre>
+<p>The last line is another option, i.e. : compute the mean directly with XPath.</p>
+<p>Output :</p>
+<pre><code>[12, 13, 14, 15, 16, 17]
+[12, 13, 14, 15, 16, 17]
+14.5
+14.5
+14.5
+</code></pre>
+<p>If you need a more robust XPath, you can go with :</p>
+<pre><code>//tr/td[count(//th[.=&quot;Value&quot;]/preceding-sibling::*)+1]
+</code></pre>
+<p>The computed position index of the <code>td</code> element is relative to the position of the &quot;Value&quot; header.</p>"
+"find hierarchy in xml structure: <p>I am trying to find the hierarchy of ToolID elements and subelements in my XML code by using ElementTree in Python:</p>
+<pre><code>&lt;Node ToolID=&quot;19&quot;&gt;
+  &lt;GuiSettings Plugin=&quot;AlteryxGuiToolkit.ToolContainer.ToolContainer&quot;&gt;
+  &lt;Properties&gt;
+  &lt;ChildNodes&gt;
+    &lt;Node ToolID=&quot;11&quot;&gt;
+    &lt;Node ToolID=&quot;16&quot;&gt;
+      &lt;GuiSettings Plugin=&quot;AlteryxGuiToolkit.ToolContainer.ToolContainer&quot;&gt;
+      &lt;Properties&gt;
+      &lt;ChildNodes&gt;
+        &lt;Node ToolID=&quot;17&quot;&gt;
+          &lt;GuiSettings Plugin=&quot;AlteryxGuiToolkit.ToolContainer.ToolContainer&quot;&gt;
+          &lt;Properties&gt;
+          &lt;ChildNodes&gt;
+            &lt;Node ToolID=&quot;2&quot;&gt;
+              &lt;GuiSettings Plugin=&quot;AlteryxBasePluginsGui.DbFileInput.DbFileInput&quot;&gt;
+              &lt;Properties&gt;
+              &lt;EngineSettings EngineDll=&quot;AlteryxBasePluginsEngine.dll&quot; EngineDllEntryPoint=&quot;AlteryxDbFileInput&quot; /&gt;
+            &lt;/Node&gt;
+          &lt;/ChildNodes&gt;
+        &lt;/Node&gt;
+        &lt;Node ToolID=&quot;18&quot;&gt;
+      &lt;/ChildNodes&gt;
+    &lt;/Node&gt;
+    &lt;Node ToolID=&quot;13&quot;&gt;
+    &lt;Node ToolID=&quot;20&quot;&gt;
+  &lt;/ChildNodes&gt;
+&lt;/Node&gt;
+&lt;/Nodes&gt;
+</code></pre>
+<p>Desired output for ToolIDs would look like this:
+<strong>{10: -}, {19: 11, 16, 13, 20}, {16: 17, 18}, {17: 2}, {2: -}, {11: -}, {18: -}, {13: -}, {20: -}</strong></p>","<p>Seems like you could simplify it to something like below if you can change from ElementTree to lxml (for better XPath support)...</p>
+<p><strong>Python</strong></p>
+<pre class=""lang-py prettyprint-override""><code>from lxml import etree
+
+tree = etree.parse(&quot;input.xml&quot;)
+
+nodes = {}
+
+for node in tree.xpath(&quot;descendant-or-self::Node&quot;):  # .//Node was not getting the first Node if it was the root element.
+    nodes[node.get(&quot;ToolID&quot;)] = [child.get(&quot;ToolID&quot;) for child in node.xpath(&quot;./ChildNodes/Node&quot;)]
+
+print(nodes)
+</code></pre>
+<p><strong>Input XML</strong> (I tried making your sample XML well-formed. Hopefully the structure is still correct.)</p>
+<pre class=""lang-xml prettyprint-override""><code>&lt;Node ToolID=&quot;19&quot;&gt;
+    &lt;GuiSettings Plugin=&quot;AlteryxGuiToolkit.ToolContainer.ToolContainer&quot;/&gt;
+    &lt;Properties/&gt;
+    &lt;ChildNodes&gt;
+        &lt;Node ToolID=&quot;11&quot;/&gt;
+        &lt;Node ToolID=&quot;16&quot;&gt;
+            &lt;GuiSettings Plugin=&quot;AlteryxGuiToolkit.ToolContainer.ToolContainer&quot;/&gt;
+            &lt;Properties/&gt;
+            &lt;ChildNodes&gt;
+                &lt;Node ToolID=&quot;17&quot;&gt;
+                    &lt;GuiSettings Plugin=&quot;AlteryxGuiToolkit.ToolContainer.ToolContainer&quot;/&gt;
+                    &lt;Properties/&gt;
+                    &lt;ChildNodes&gt;
+                        &lt;Node ToolID=&quot;2&quot;&gt;
+                            &lt;GuiSettings Plugin=&quot;AlteryxBasePluginsGui.DbFileInput.DbFileInput&quot;/&gt;
+                            &lt;Properties/&gt;
+                            &lt;EngineSettings EngineDll=&quot;AlteryxBasePluginsEngine.dll&quot; EngineDllEntryPoint=&quot;AlteryxDbFileInput&quot;/&gt;
+                        &lt;/Node&gt;
+                    &lt;/ChildNodes&gt;
+                &lt;/Node&gt;
+                &lt;Node ToolID=&quot;18&quot;/&gt;
+            &lt;/ChildNodes&gt;
+        &lt;/Node&gt;
+        &lt;Node ToolID=&quot;13&quot;/&gt;
+        &lt;Node ToolID=&quot;20&quot;/&gt;
+    &lt;/ChildNodes&gt;
+&lt;/Node&gt;
+</code></pre>
+<p><strong>Printed Output</strong></p>
+<pre class=""lang-py prettyprint-override""><code>{'19': ['11', '16', '13', '20'], 
+ '11': [], 
+ '16': ['17', '18'], 
+ '17': ['2'], 
+ '2':  [], 
+ '18': [], 
+ '13': [], 
+ '20': []}
+</code></pre>
+<p>If your actual XML has a root element that isn't <code>Node</code>, you can still use ElementTree...</p>
+<pre class=""lang-py prettyprint-override""><code>for node in tree.findall(&quot;.//Node&quot;):
+    nodes[node.get(&quot;ToolID&quot;)] = [child.get(&quot;ToolID&quot;) for child in node.findall(&quot;./ChildNodes/Node&quot;)]
+</code></pre>"
+"scraping table from a website result as empty: <p>I am trying to scrape the main table with tag :</p>
+<pre><code>&lt;table _ngcontent-jna-c4=&quot;&quot; class=&quot;rayanDynamicStatement&quot;&gt;
+</code></pre>
+<p>from following website using 'BeautifulSoup' library, but the code returns empty [] while printing soup returns html string and request status is 200. I found out that when i use browser 'inspect element' tool i can see the table tag but in &quot;view page source&quot; the table tag which is part of &quot;app-root&quot; tag is not shown. (you see <code>&lt;app-root&gt;&lt;/app-root&gt;</code> which is empty). Besides there is no &quot;json&quot; file in the webpage's components to extract data from it. Please help me how can I scrape the table data.</p>
+<pre><code>import urllib.request
+import pandas as pd
+from urllib.parse import unquote
+from bs4 import BeautifulSoup
+yurl='https://www.codal.ir/Reports/Decision.aspx?LetterSerial=T1hETjlDjOQQQaQQQfaL0Mb7uucg%3D%3D&amp;rt=0&amp;let=6&amp;ct=0&amp;ft=-1&amp;sheetId=0'
+req=urllib.request.urlopen(yurl)
+print(req.status)
+#get response
+response = req.read()
+html = response.decode(&quot;utf-8&quot;)
+#make html readable
+soup = BeautifulSoup(html, features=&quot;html&quot;)
+table_body=soup.find_all(&quot;table&quot;)
+print(table_body)
+</code></pre>","<p>The table is in the source <code>HTML</code> but kinda hidden and then rendered by <code>JavaScript</code>. It's in one of the <code>&lt;script&gt;</code> tags. This can be located with <code>bs4</code> and then parsed with <code>regex</code>. Finally, the table data can be dumped to <code>json.loads</code> then to a <code>pandas</code> and to a <code>.csv</code> file, but since I don't know any Persian, you'd have to see if it's of any use.</p>
+<p>Just by looking at some values, I think it is.</p>
+<p>Oh, and this can be done <em>without</em> <code>selenium</code>.</p>
+<p>Here's how:</p>
+<pre class=""lang-py prettyprint-override""><code>import pandas as pd
+import json
+import re
+
+import requests
+from bs4 import BeautifulSoup
+
+url = &quot;https://www.codal.ir/Reports/Decision.aspx?LetterSerial=T1hETjlDjOQQQaQQQfaL0Mb7uucg%3D%3D&amp;rt=0&amp;let=6&amp;ct=0&amp;ft=-1&amp;sheetId=0&quot;
+scripts = BeautifulSoup(
+    requests.get(url, verify=False).content,
+    &quot;lxml&quot;,
+).find_all(&quot;script&quot;, {&quot;type&quot;: &quot;text/javascript&quot;})
+
+table_data = json.loads(
+    re.search(r&quot;var datasource = ({.*})&quot;, scripts[-5].string).group(1),
+)
+
+pd.DataFrame(
+    table_data[&quot;sheets&quot;][0][&quot;tables&quot;][0][&quot;cells&quot;],
+).to_csv(&quot;huge_table.csv&quot;, index=False)
+
+</code></pre>
+<p>This outputs a huge file that looks like this:</p>
+<p><a href=""https://i.stack.imgur.com/EuLDG.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/EuLDG.png"" alt=""enter image description here"" /></a></p>"
+"how to parse through this xml?: <p>Suppose I have the following XML response from mediawiki api. I want to find out the earliest date that the wiki topic was revised, which in this case is 2005-08-23. How do I parse through the xml to find that out. I'm using python btw.</p>
+
+<pre><code>   &lt;?xml version=""1.0""?&gt;
+    &lt;api&gt;
+      &lt;query-continue&gt;
+        &lt;revisions rvcontinue=""46214352"" /&gt;
+      &lt;/query-continue&gt;
+      &lt;query&gt;
+        &lt;pageids&gt;
+          &lt;id&gt;2516600&lt;/id&gt;
+        &lt;/pageids&gt;
+        &lt;pages&gt;
+          &lt;page pageid=""2516600"" ns=""0"" title=""!Kung language""&gt;
+            &lt;revisions&gt;
+              &lt;rev timestamp=""2005-08-23T00:58:40Z"" /&gt;
+              &lt;rev timestamp=""2005-08-23T01:01:00Z"" /&gt;
+              &lt;rev timestamp=""2005-09-02T07:21:37Z"" /&gt;
+              &lt;rev timestamp=""2005-09-02T07:24:28Z"" /&gt;
+              &lt;rev timestamp=""2006-01-06T07:45:35Z"" /&gt;
+              &lt;rev timestamp=""2006-03-22T09:03:23Z"" /&gt;
+              &lt;rev timestamp=""2006-03-30T05:50:12Z"" /&gt;
+              &lt;rev timestamp=""2006-03-30T20:33:22Z"" /&gt;
+              &lt;rev timestamp=""2006-03-30T20:35:05Z"" /&gt;
+              &lt;rev timestamp=""2006-03-30T20:37:16Z"" /&gt;
+            &lt;/revisions&gt;
+          &lt;/page&gt;
+        &lt;/pages&gt;
+      &lt;/query&gt;
+    &lt;/api&gt;
+</code></pre>
+
+<p>I tried the following</p>
+
+<pre><code>revisions = text.getElementsByTagName(""revisions"")
+for x in revisions:
+    children = x.childNodes
+    for y in children:
+        print y.nodeValue
+</code></pre>
+
+<p>but all this does is print None.</p>","<p>I would use lxml with an XPath expression:</p>
+
+<pre><code>from lxml import etree
+
+root = etree.fromstring(xml)
+timestamps = root.xpath('//rev/@timestamp')
+</code></pre>
+
+<p>As for your code, you aren't getting the attribute of the element. To do that, use <code>getAttribute</code>:</p>
+
+<pre><code>print y.getAttribute('timestamp')
+</code></pre>"
+"regex for replacement of value text from child tags using id of parent tag: <pre><code>&lt;Galactus id=""ironman""&gt;
+    &lt;GalactusId&gt;METALIC&lt;/GalactusId&gt;
+    &lt;GalactusName&gt;COMMUNICATOR&lt;/GalactusName&gt;
+&lt;/Galactus&gt;
+
+&lt;Galactus id=""HULK""&gt;
+    &lt;GalactusId&gt;BULKY&lt;/GalactusId&gt;
+    &lt;GalactusName&gt;CRUSHER&lt;/GalactusName&gt;
+&lt;/Galactus&gt;
+</code></pre>
+
+<p>I want to replace GalactusId value to ""Galactus id"" i.e HULK or ironman + First 3character from existing GalactusId
+and same for GalactusName. so the out sould look like.</p>
+
+<pre><code>&lt;Galactus id=""ironman""&gt;
+    &lt;GalactusId&gt;ironman_MET&lt;/GalactusId&gt;
+    &lt;GalactusName&gt;ironman_COM&lt;/GalactusName&gt;
+&lt;/Galactus&gt;
+
+&lt;Galactus id=""HULK""&gt;
+    &lt;GalactusId&gt;HULK_BUL&lt;/GalactusId&gt;
+    &lt;GalactusName&gt;HULK_CRU&lt;/GalactusName&gt;
+&lt;/Galactus&gt;
+</code></pre>
+
+<p>All child tags should change accordingly, not just these two.</p>","<p>It is a <a href=""https://stackoverflow.com/a/1732454/1028589"">bad</a> practise to parse XML or HTML with regex. You should use XML Parser. For Python, <a href=""http://lxml.de/"" rel=""nofollow noreferrer"">lxml</a> is probably most popular.</p>
+
+<pre><code>import lxml.etree
+xml = lxml.etree.fromstring('''
+&lt;xml&gt;
+    &lt;Galactus id=""ironman""&gt;
+        &lt;GalactusId&gt;METALIC&lt;/GalactusId&gt;
+        &lt;GalactusName&gt;COMMUNICATOR&lt;/GalactusName&gt;
+    &lt;/Galactus&gt;
+
+    &lt;Galactus id=""HULK""&gt;
+        &lt;GalactusId&gt;BULKY&lt;/GalactusId&gt;
+        &lt;GalactusName&gt;CRUSHER&lt;/GalactusName&gt;
+    &lt;/Galactus&gt;
+&lt;/xml&gt;''')
+
+for galactus in xml.iterfind('.//Galactus'):
+    for child in galactus.getchildren():
+        child.text = galactus.attrib['id'] + '_' + child.text[:3]
+
+print(lxml.etree.tostring(xml).decode())
+</code></pre>"
+"Python XPath SyntaxError: invalid predicate: <p>i am trying to parse an xml like</p>
+
+<pre><code>&lt;document&gt;
+    &lt;pages&gt;
+
+    &lt;page&gt;   
+       &lt;paragraph&gt;XBV&lt;/paragraph&gt;
+
+       &lt;paragraph&gt;GHF&lt;/paragraph&gt;
+    &lt;/page&gt;
+
+    &lt;page&gt;
+       &lt;paragraph&gt;ash&lt;/paragraph&gt;
+
+       &lt;paragraph&gt;lplp&lt;/paragraph&gt;
+    &lt;/page&gt;
+
+    &lt;/pages&gt;
+&lt;/document&gt;
+</code></pre>
+
+<p>and here is my code</p>
+
+<pre><code>import xml.etree.ElementTree as ET
+
+tree = ET.parse(""../../xml/test.xml"")
+
+root = tree.getroot()
+
+path=""./pages/page/paragraph[text()='GHF']""
+
+print root.findall(path)
+</code></pre>
+
+<p>but i get an error</p>
+
+<pre><code>print root.findall(path)
+  File ""X:\Anaconda2\lib\xml\etree\ElementTree.py"", line 390, in findall
+    return ElementPath.findall(self, path, namespaces)
+  File ""X:\Anaconda2\lib\xml\etree\ElementPath.py"", line 293, in findall
+    return list(iterfind(elem, path, namespaces))
+  File ""X:\Anaconda2\lib\xml\etree\ElementPath.py"", line 263, in iterfind
+    selector.append(ops[token[0]](next, token))
+  File ""X:\Anaconda2\lib\xml\etree\ElementPath.py"", line 224, in prepare_predicate
+    raise SyntaxError(""invalid predicate"")
+SyntaxError: invalid predicate
+</code></pre>
+
+<p>what is wrong with my xpath?</p>
+
+<p><strong>Follow up</strong></p>
+
+<p>Thanks falsetru, your solution worked. I have a follow up. Now, i want to get all the paragraph elements that come before the paragraph with text <code>GHF</code>. So in this case i only need the <code>XBV</code> element. I want to ignore the <code>ash</code> and <code>lplp</code>. i guess one way to do this would be </p>
+
+<pre><code>result = []
+for para in root.findall('./pages/page/'):
+    t = para.text.encode(""utf-8"", ""ignore"")
+    if t == ""GHF"":
+       break
+    else:
+        result.append(para)
+</code></pre>
+
+<p>but is there a better way to do this?</p>","<p><a href=""https://docs.python.org/2/library/xml.etree.elementtree.html#xpath-support"">ElementTree's XPath support is limited.</a> Use other library like <a href=""http://lxml.de/""><code>lxml</code></a>:</p>
+
+<pre><code>import lxml.etree
+root = lxml.etree.parse('test.xml')
+
+path=""./pages/page/paragraph[text()='GHF']""
+print root.xpath(path)
+</code></pre>"
+"How to select all text in table cells in Selenium: <p>Trying to write a simple script to give me all the cell contents of a table.  </p>
+
+<pre><code>from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+
+url = 'http://127.0.0.1/html5css3'
+driver = webdriver.Firefox()
+driver.get(url)
+
+table = driver.find_elements_by_xpath(""//td//text()"")
+
+for t in table:
+    print t
+</code></pre>
+
+<p>I have yet to find a tutorial on xpath syntax that covers from the basics to the advanced.</p>
+
+<p><strong>Sample input:</strong></p>
+
+<pre><code>&lt;table border=""1""&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Product&lt;/td&gt;
+    &lt;td&gt;Vehicle&lt;/td&gt;
+    &lt;td&gt;Price&lt;/td&gt;
+    &lt;td&gt;Rating&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Duration&lt;/td&gt;
+    &lt;td&gt;Latex&lt;/td&gt;
+    &lt;td&gt;62&lt;/td&gt;
+    &lt;td&gt;5&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Super Paint&lt;/td&gt;
+    &lt;td&gt;Latex&lt;/td&gt;
+    &lt;td&gt;56&lt;/td&gt;
+    &lt;td&gt;4&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;A-100&lt;/td&gt;
+    &lt;td&gt;Latex&lt;/td&gt;
+    &lt;td&gt;48&lt;/td&gt;
+    &lt;td&gt;3&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Macropoxy&lt;/td&gt;
+    &lt;td&gt;Epoxy&lt;/td&gt;
+    &lt;td&gt;62&lt;/td&gt;
+    &lt;td&gt;5&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+</code></pre>","<p>When I run your program I get this error message:</p>
+
+<blockquote>
+  <blockquote>
+    <p>The result of the xpath expression ""//td//text()"" is: [object XrayWrapper [object Text]]. It should be an element.</p>
+  </blockquote>
+</blockquote>
+
+<p>Sure enough, when I run that expression in <code>lxml</code>, I get a list of strings.</p>
+
+<p>Apparently, <code>.find_elements*</code> only want to return WebElements; they don't want to return strings.</p>
+
+<p>Depending upon your greater requirements, try one of these:</p>
+
+<pre><code>list_of_elements = driver.find_elements_by_xpath('//td') # return elements
+list_of_text = [t.text for t in driver.find_elements_by_xpath('//td')] # return strings
+</code></pre>
+
+<p>Although, if it were me, I'd want to have some structure in my result:</p>
+
+<pre><code>list_of_lists = [[td.text
+                  for td in tr.find_elements_by_xpath('td')]
+                  for tr in driver.find_elements_by_xpath('//tr')]
+list_of_dicts = [dict(zip(list_of_lists[0],row)) for row in list_of_lists[1:]]
+</code></pre>
+
+<p>With that, your goal is easily within reach:</p>
+
+<blockquote>
+  <blockquote>
+    <p>My eventual goal is to do something like PRINT td[2] Where td[4] is greater than 3</p>
+  </blockquote>
+</blockquote>
+
+<pre><code>print [row['Vehicle'] for row in list_of_dicts if int(row['Rating']) &gt; 3]
+</code></pre>
+
+<p>Here is a final program that might do what you want:</p>
+
+<pre><code>from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+
+url = 'file:///tmp/x.html'
+driver = webdriver.Firefox()
+driver.get(url)
+
+list_of_lists = [[td.text
+                  for td in tr.find_elements_by_xpath('td')]
+                  for tr in driver.find_elements_by_xpath('//tr')]
+list_of_dicts = [dict(zip(list_of_lists[0],row)) for row in list_of_lists[1:]]
+
+for t in list_of_dicts:
+    if int(t['Rating']) &gt; 3:
+        print t['Vehicle']
+</code></pre>"
+"Bad named links search and replace: <p>The problem i'm facing is badly named links...
+There are few hundred bad links in different files.</p>
+
+<p>So I write bash to replace links
+<br/><code>&lt;a href=""../../../external.html?link=http://www.twitter.com""&gt;</code><br/><code>&lt;a href=""../../external.html?link=http://www.facebook.com/pages/somepage/""&gt;</code>
+<br/><code>&lt;a href=""../external.html?link=http://www.tumblr.com/""&gt;</code><br/>
+to direct links like 
+    <code>&lt;a href=""http://www.twitter.com&gt;</code></p>
+
+<p>I know we have pattern ../ repeating one or more times. Also external.html?link which also should be removed.</p>
+
+<p>How would recommend to do this? awk, sed, maybe python??
+Will i need regex?</p>
+
+<p>Thanks for opinions...</p>","<p>This <em>could</em> be a place where regular expressions are the correct solution. You are only searching for text in attributes, and the contents are regular, fitting a pattern.</p>
+
+<p>The following python regular expression would locate these links for you:</p>
+
+<pre><code>r'href=""((?:\.\./)+external\.html\?link=)([^""]+)""'
+</code></pre>
+
+<p>The pattern we look for is something inside a <code>href=""""</code> chunk of text, where that 'something' starts with one or more instances of <code>../</code>, followed by <code>external.html?link=</code>, then followed with any text that does not contain a <code>""</code> quote.</p>
+
+<p>The matched text after the equals sign is grouped in group 2 for easy retrieval, group 1 holds the <code>../../external.html?link=</code> part.</p>
+
+<p>If all you want to do is remove the <code>../../external.html?link=</code> part altogether (so the links point directly to the endpoint instead of going via the redirect page), leave off the first group and do a simple <code>.sub()</code> on your HTML files:</p>
+
+<pre><code>import re
+redirects = re.compile(r'href=""(?:\.\./)+external\.html\?link=([^""]+)""')
+
+# ...
+redirects.sub(r'href=""\1""', somehtmlstring)
+</code></pre>
+
+<p>Note that this could also match any body text (so outside HTML tags), this is not a HTML-aware solution. Chances are there is no such body text though. But if there is, you'll need a full-blown HTML parser like BeautifulSoup or lxml instead.</p>"
+"Bad named links search and replace: <p>The problem i'm facing is badly named links...
+There are few hundred bad links in different files.</p>
+
+<p>So I write bash to replace links
+<br/><code>&lt;a href=""../../../external.html?link=http://www.twitter.com""&gt;</code><br/><code>&lt;a href=""../../external.html?link=http://www.facebook.com/pages/somepage/""&gt;</code>
+<br/><code>&lt;a href=""../external.html?link=http://www.tumblr.com/""&gt;</code><br/>
+to direct links like 
+    <code>&lt;a href=""http://www.twitter.com&gt;</code></p>
+
+<p>I know we have pattern ../ repeating one or more times. Also external.html?link which also should be removed.</p>
+
+<p>How would recommend to do this? awk, sed, maybe python??
+Will i need regex?</p>
+
+<p>Thanks for opinions...</p>",<p>Use a HTML parser like BeautifulSoup or lxml.html.</p>
+"Getting the xml soap response instead of raw data: <p>I am trying to get the soap response and read few tags and then put the key and values inside a dictionary.</p>
+
+<p>Better would be if I could use the response generated directly and preform regd operations to it.
+But since I was not able to do that, I tried storing the response in an xml file and then using that for operations.</p>
+
+<p>My problem is that the response generated is in a raw form. How to resolve this.</p>
+
+<pre><code>Example: &amp;lt;medical:totEeCnt val=&amp;quot;2&amp;quot; /&amp;gt;&amp;#xd;
+          &amp;lt;medical:totMbrCnt val=&amp;quot;2&amp;quot; /&amp;gt;&amp;#xd;
+          &amp;lt;medical:totDepCnt val=&amp;quot;0&amp;quot; /&amp;gt;&amp;#xd;
+
+
+def soapTest():
+    request = """"""&lt;soapenv:Envelope.......
+    auth = HTTPBasicAuth('', '')
+        headers = {'content-type': 'application/soap+xml', 'SOAPAction': """", 'Host': 'bfx-b2b....com'}
+        url = ""https://bfx-b2b....com/B2BWEB/services/IProductPort""
+        response = requests.post(url, data=request, headers=headers, auth=auth, verify=True)
+
+        # Open local file
+        fd = os.open('planRates.xml', os.O_RDWR|os.O_CREAT)
+
+        # Convert response object into string
+        response_str = str(response.content)
+
+        # Write response to the file
+        os.write(fd, response_str)
+
+        # Close the file
+        os.close(fd)
+
+        tree = ET.parse('planRates.xml')
+        root = tree.getroot()
+        dict = {}
+
+        print root
+        for plan in root.findall('.//{http://services.b2b.../types/rates/dental}dentPln'):  # type: object
+
+            plan_id = plan.get('cd')
+            print plan
+
+            print plan_id
+
+            for rtGroup in plan.findall('.//{http://services.b2b....com/types/rates/dental}censRtGrp'):
+
+                #print rtGroup
+                for amt in rtGroup.findall('.//{http://services.b2b....com/types/rates/dental}totAnnPrem'):
+                    # print amt
+                    print amt.get('val')
+                    amount =  amt.get('val')
+                    dict[plan_id] = amount
+
+                print dict
+</code></pre>
+
+<p>Update-:
+I did few things, what I am not able to understand is that ,
+using this, the operations further are working,</p>
+
+<pre><code>     tree = ET.parse('data/planRates.xml')
+        root = tree.getroot()
+        dict = {}
+        print tree
+        print root
+for plan in root.findall(..
+</code></pre>
+
+<p>output -</p>
+
+<pre><code>&lt;xml.etree.ElementTree.ElementTree object at 0x100d7b910&gt;
+&lt;Element '{http://schemas.xmlsoap.org/soap/envelope/}Envelope' at 0x101500450&gt;
+</code></pre>
+
+<p>But after using this ,it is not working</p>
+
+<pre><code>    tree = ET.fromstring(response.text)
+    print tree
+for plan in tree.findall(..
+</code></pre>
+
+<p>output-:</p>
+
+<pre><code>&lt;Element '{http://schemas.xmlsoap.org/soap/envelope/}Envelope' at 0x10d624910&gt;
+</code></pre>
+
+<p>Basically I am using the same object only .</p>","<p>Supposing you get a response that you want as proper xml object:</p>
+
+<pre><code>rt = resp.text.encode('utf-8')
+
+# printed rt is something like:
+'&lt;soap:Envelope xmlns:soap=""http://...""&gt;
+ &lt;soap:Envelope
+ &lt;AirShoppingRS xmlns=""http://www.iata.org/IATA/EDIST"" Version=""16.1""&gt;
+ &lt;Document&gt;...&lt;/soap:Envelope&lt;/soap:Envelope&gt;'
+
+# striping soapEnv
+startTag = '&lt;AirShoppingRS '
+endTag = '&lt;/AirShoppingRS&gt;'
+trimmed = rt[rt.find(startTag): rt.find(endTag) + len(endTag)]
+
+# parsing
+from lxml import etree as et
+root = et.fromstring(trimmed)
+</code></pre>
+
+<p>With this root element you can use find method, xpath or whatever you prefer.<br>
+Obviously you need to change the start and endtags to extract the correct element from the response but you get the idea, right?</p>"
+"Scraping difficult table: <p>I have been trying to scrape a table from <a href=""https://www.basketball-reference.com/leagues/NBA_2019.html"" rel=""nofollow noreferrer"">here</a> for quite some time but have been unsuccessful. The table I am trying to scrape is titled ""Team Per Game Stats"". I am confident that once I am able to scrape one element of that table that I can iterate through the columns I want from the list and eventually end up with a pandas data frame.</p>
+
+<p>Here is my code so far:</p>
+
+<pre><code>from bs4 import BeautifulSoup
+import requests
+
+# url that we are scraping
+r = requests.get('https://www.basketball-reference.com/leagues/NBA_2019.html')
+# Lets look at what the request content looks like
+print(r.content)
+
+# use Beautifulsoup on content from request
+c = r.content
+soup = BeautifulSoup(c)
+print(soup)
+
+# using prettify() in Beautiful soup indents HTML like it should be in the web page
+# This can make reading the HTML a little be easier
+print(soup.prettify())
+
+# get elements within the 'main-content' tag
+team_per_game = soup.find(id=""all_team-stats-per_game"")
+print(team_per_game)
+</code></pre>
+
+<p>Any help would be greatly appreciated.</p>","<p>That webpage employs a trick to try to stop search engines and other automated web clients (including scrapers) from finding the table data: the tables are stored in HTML comments:</p>
+
+<pre class=""lang-html prettyprint-override""><code>&lt;div id=""all_team-stats-per_game"" class=""table_wrapper setup_commented commented""&gt;
+
+&lt;div class=""section_heading""&gt;
+  &lt;span class=""section_anchor"" id=""team-stats-per_game_link"" data-label=""Team Per Game Stats""&gt;&lt;/span&gt;&lt;h2&gt;Team Per Game Stats&lt;/h2&gt;    &lt;div class=""section_heading_text""&gt;
+      &lt;ul&gt; &lt;li&gt;&lt;small&gt;* Playoff teams&lt;/small&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/div&gt;      
+&lt;/div&gt;
+&lt;div class=""placeholder""&gt;&lt;/div&gt;
+&lt;!--
+   &lt;div class=""table_outer_container""&gt;
+      &lt;div class=""overthrow table_container"" id=""div_team-stats-per_game""&gt;
+  &lt;table class=""sortable stats_table"" id=""team-stats-per_game"" data-cols-to-freeze=2&gt;&lt;caption&gt;Team Per Game Stats Table&lt;/caption&gt;
+
+...
+
+&lt;/table&gt;
+
+      &lt;/div&gt;
+   &lt;/div&gt;
+--&gt;
+&lt;/div&gt;
+</code></pre>
+
+<p>I note that the opening <code>div</code> has <code>setup_commented</code> and <code>commented</code> classes. Javascript code included in the page is then executed by your browser that then loads the text from those comments and replaces the <code>placeholder</code> div with the contents as new HTML for the browser to display.</p>
+
+<p>You can extract the comment text here:</p>
+
+<pre><code>from bs4 import BeautifulSoup, Comment
+
+soup = BeautifulSoup(r.content, 'lxml')
+placeholder = soup.select_one('#all_team-stats-per_game .placeholder')
+comment = next(elem for elem in placeholder.next_siblings if isinstance(elem, Comment))
+table_soup = BeautifulSoup(comment, 'lxml')
+</code></pre>
+
+<p>then continue to parse the table HTML.</p>
+
+<p>This specific site has published both <a href=""https://www.sports-reference.com/termsofuse.html"" rel=""nofollow noreferrer"">terms of use</a>, and <a href=""https://www.sports-reference.com/data_use.html"" rel=""nofollow noreferrer"">a page on data use</a> you should probably read if you are going to use their data. Specifically, their terms state, under section 6. <em>Site Content</em>:</p>
+
+<blockquote>
+  <p>You may not frame, capture, harvest, or collect any part of the Site or Content without SRL's advance written consent.</p>
+</blockquote>
+
+<p>Scraping the data would fall under that heading.</p>"
+"Scraping difficult table: <p>I have been trying to scrape a table from <a href=""https://www.basketball-reference.com/leagues/NBA_2019.html"" rel=""nofollow noreferrer"">here</a> for quite some time but have been unsuccessful. The table I am trying to scrape is titled ""Team Per Game Stats"". I am confident that once I am able to scrape one element of that table that I can iterate through the columns I want from the list and eventually end up with a pandas data frame.</p>
+
+<p>Here is my code so far:</p>
+
+<pre><code>from bs4 import BeautifulSoup
+import requests
+
+# url that we are scraping
+r = requests.get('https://www.basketball-reference.com/leagues/NBA_2019.html')
+# Lets look at what the request content looks like
+print(r.content)
+
+# use Beautifulsoup on content from request
+c = r.content
+soup = BeautifulSoup(c)
+print(soup)
+
+# using prettify() in Beautiful soup indents HTML like it should be in the web page
+# This can make reading the HTML a little be easier
+print(soup.prettify())
+
+# get elements within the 'main-content' tag
+team_per_game = soup.find(id=""all_team-stats-per_game"")
+print(team_per_game)
+</code></pre>
+
+<p>Any help would be greatly appreciated.</p>","<p>Just to complete Martijn Pieters's answer (and without lxml)</p>
+
+<pre><code>from bs4 import BeautifulSoup, Comment
+import requests
+
+r = requests.get('https://www.basketball-reference.com/leagues/NBA_2019.html')
+soup = BeautifulSoup(r.content, 'html.parser')
+placeholder = soup.select_one('#all_team-stats-per_game .placeholder')
+comment = next(elem for elem in placeholder.next_siblings if isinstance(elem, Comment))
+table = BeautifulSoup(comment, 'html.parser')
+rows = table.find_all('tr')
+for row in rows:
+    cells = row.find_all('td')
+    if cells:
+        print([cell.text for cell in cells])
+</code></pre>
+
+<p>Partial output</p>
+
+<pre><code>[u'New Orleans Pelicans', u'71', u'240.0', u'43.6', u'91.7', u'.476', u'10.1', u'29.4', u'.344', u'33.5', u'62.4', u'.537', u'18.1', u'23.9', u'.760', u'11.0', u'36.0', u'47.0', u'27.0', u'7.5', u'5.5', u'14.5', u'21.4', u'115.5']
+[u'Milwaukee Bucks*', u'69', u'241.1', u'43.3', u'90.8', u'.477', u'13.3', u'37.9', u'.351', u'30.0', u'52.9', u'.567', u'17.6', u'22.8', u'.773', u'9.3', u'40.1', u'49.4', u'26.0', u'7.4', u'6.0', u'14.0', u'19.8', u'117.6']
+[u'Los Angeles Clippers', u'70', u'241.8', u'41.0', u'87.6', u'.469', u'9.8', u'25.2', u'.387', u'31.3', u'62.3', u'.502', u'22.8', u'28.8', u'.792', u'9.9', u'35.7', u'45.6', u'23.4', u'6.6', u'4.7', u'14.5', u'23.5', u'114.6']
+</code></pre>"
+"How do I find an xml node that does not have an attribute: <p>I'm using python 2.7 and trying to parse the XML below - what I'm trying to do is create a python array of all genres with a language attribute together with an array where there is no language attribute.</p>
+
+<p>I'm using the python module <code>import xml.etree.cElementTree as ET</code></p>
+
+<p>I know I can find the XML section where the language attribute is in the ""fr"" language via syntax:</p>
+
+<pre>
+
+tree=ET.ElementTree(file='popups.xml')
+root = tree.getroot()
+for x in root.findall('alt[@{http://www.w3.org/XML/1998/namespace}lang=""fr""]/alt'):
+   print x.text
+</pre>
+
+<p>I dont really understand why I can't use <code>xml:lang</code> rather than <code>{http://www.w3.org/XML/1998/namespace}lang</code>, but the above seems to work on Ubuntu 12.04</p>
+
+<p>What I'm trying to find out is the ""not"" syntax - where the XML section does NOT have any language attribute</p>
+
+<p>Anybody have any thoughts how to achieve this?</p>
+
+<pre><code>&lt;genre&gt;
+  &lt;alt&gt;
+        &lt;alt genre=""easy listening""&gt;lounge&lt;/alt&gt;
+        &lt;alt genre=""alternative""&gt;ska&lt;/alt&gt;
+  &lt;/alt&gt;
+
+  &lt;alt xml:lang=""fr""&gt;
+        &lt;alt genre=""gospel""&gt;catholique&lt;/alt&gt;
+  &lt;/alt&gt;
+&lt;/genre&gt;
+</code></pre>","<p>You need to use the full QName in your xpath because the stdlib ElementTree does not have a way of registering a prefix. I usually use a helper function to create QNames:</p>
+
+<pre><code>def qname(prefix, element, map={'xml':'http://www.w3.org/XML/1998/namespace'}):
+    return ""{{{}}}{}"".format(map[prefix], element)
+</code></pre>
+
+<p>The <code>ElementTree</code> implementation in the standard library does not support enough XPath to do what you want easily.  However, the <a href=""http://www.w3.org/TR/REC-xml/#sec-lang-tag"" rel=""nofollow"">spec for <code>xml:lang</code></a> specifies that the value of this attribute is inherited by everything that contains it, sort of like <code>xml:base</code> or <code>xmlns</code> namespace declarations. So as an alternative, we can make the language setting explicit on all elements:</p>
+
+<pre><code>xml_lang = qname('xml', 'lang')
+
+def set_xml_lang(root, defaultlang=''):
+    xml_lang = qname('xml', 'lang')
+    for item in root:
+        try:
+            lang = item.attrib[xml_lang]
+        except KeyError, err:
+            item.set(xml_lang, defaultlang)
+            lang = defaultlang
+        set_xml_lang(item, lang)
+
+set_xml_lang(root)
+
+namespaces = {'xml':'http://www.w3.org/XML/1998/namespace'}
+# Every element in root now has an xml:lang attribute
+# so XPath is easy now:
+alts_with_no_lang = root.findall('alt[@{{{xml}}}lang=""""]'.format(**namespaces))
+</code></pre>
+
+<p>If you're willing to use <a href=""http://lxml.de"" rel=""nofollow""><code>lxml</code></a>, your use of ""lang"" can be much more robust because it follows the complete XPath 1.0 spec. In particular, you can use the <code>lang()</code> function:</p>
+
+<pre><code>import lxml.etree as ET
+
+root = ET.fromstring(xml)
+
+print root.xpath('//alt[lang(""fr"")]')
+</code></pre>
+
+<p>As a bonus, it will have proper <code>lang()</code> semantics, like case-insensitivity and being smart about language regions (e.g., <code>lang('en')</code> will be true for <code>xml:lang=""en-US""</code> too).</p>
+
+<p>Unfortunately you can't use <code>lang()</code> to determine the language of a node. You need to find the first <code>xml:lang</code> ancestor and use that:</p>
+
+<pre><code>mylang = node.xpath('(ancestor-or-self::*/@xml:lang)[1]')
+</code></pre>
+
+<p><em>Putting it all together</em>, to match nodes that have no language:</p>
+
+<pre><code>tree.xpath('//alt[not((ancestor-or-self::*/@xml:lang)[1])]')
+</code></pre>"
+"How do I find an xml node that does not have an attribute: <p>I'm using python 2.7 and trying to parse the XML below - what I'm trying to do is create a python array of all genres with a language attribute together with an array where there is no language attribute.</p>
+
+<p>I'm using the python module <code>import xml.etree.cElementTree as ET</code></p>
+
+<p>I know I can find the XML section where the language attribute is in the ""fr"" language via syntax:</p>
+
+<pre>
+
+tree=ET.ElementTree(file='popups.xml')
+root = tree.getroot()
+for x in root.findall('alt[@{http://www.w3.org/XML/1998/namespace}lang=""fr""]/alt'):
+   print x.text
+</pre>
+
+<p>I dont really understand why I can't use <code>xml:lang</code> rather than <code>{http://www.w3.org/XML/1998/namespace}lang</code>, but the above seems to work on Ubuntu 12.04</p>
+
+<p>What I'm trying to find out is the ""not"" syntax - where the XML section does NOT have any language attribute</p>
+
+<p>Anybody have any thoughts how to achieve this?</p>
+
+<pre><code>&lt;genre&gt;
+  &lt;alt&gt;
+        &lt;alt genre=""easy listening""&gt;lounge&lt;/alt&gt;
+        &lt;alt genre=""alternative""&gt;ska&lt;/alt&gt;
+  &lt;/alt&gt;
+
+  &lt;alt xml:lang=""fr""&gt;
+        &lt;alt genre=""gospel""&gt;catholique&lt;/alt&gt;
+  &lt;/alt&gt;
+&lt;/genre&gt;
+</code></pre>","<blockquote>
+  <p>I dont really understand why I can't use xml:lang rather than {http://www.w3.org/XML/1998/namespace}lang, but the above seems to work on Ubuntu 12.04</p>
+</blockquote>
+
+<p>What you are trying to do will be easier using the <code>xpath</code> method (which is <em>not</em> available in <code>cElementTree</code>), which among other things will read the namespace labels from the root element of your document, so you can ask this:</p>
+
+<pre><code>import lxml.etree as et
+
+root = et.parse(open('mydoc.xml')).getroot()
+
+for x in root.xpath('alt[not(@xml:lang)]/alt'):
+    print x.text
+</code></pre>
+
+<p>The <code>not(@attr)</code> syntax I wasn't previously familiar with, but a Google search for ""xpath find element without attribute"" was tremendously useful.</p>"
+"Python Requests: Selecting a form for login: <p>I've been successfully scraping a website using mechanize, but I've had some problems with the page.open getting stuck (and not giving a timeout error) so I'd like to try and perform the same scrape with Requests. However, I can't figure out how to select a form to enter my login credentials. Here is the working code in mechanize:</p>
+
+<pre><code># Browser
+br = mechanize.Browser()
+
+# Cookie Jar
+cj = cookielib.LWPCookieJar()
+br.set_cookiejar(cj)
+
+# Browser options
+br.set_handle_equiv(True)
+br.set_handle_redirect(True)
+br.set_handle_referer(True)
+br.set_handle_robots(False)
+br.set_handle_refresh(mechanize._http.HTTPRefreshProcessor(), max_time=1)
+br.addheaders = [('User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
+br.set_proxies({""https"": ""198.102.28.100:7808"", ""http"": ""54.235.92.109:8080""})
+
+# Open Login Page
+br.open(""https://example.com/login/Signin?"")
+br.select_form(name=""signinForm_0"")
+br[""loginEmail""] = ""username""
+br[""loginPassword""] = 'password'
+br.method = ""POST""
+br.submit()
+
+#Open Page
+URL = 'https://example.com'
+br.open(URL, timeout=5.0)
+</code></pre>
+
+<p>I'm unsure how to replicate the br.select_form functionality using Python Requets. Does anyone have any ideas or experience doing this?</p>","<p>If I not wrong, <a href=""https://pypi.python.org/pypi/selenium"" rel=""nofollow"">Selenium</a> is similar to Mechanize, but not Requests. Requests is used mostly to HTTP. Requests is similar to <a href=""http://docs.python.org/2/library/urllib.html"" rel=""nofollow"">urllib</a> or <a href=""http://docs.python.org/2/library/urllib2.html"" rel=""nofollow"">urllib2</a> but it is better. You can send request (GET or POST) and read html file from server but you need other modules to get some element on page - <a href=""http://www.crummy.com/software/BeautifulSoup/bs4/doc/#"" rel=""nofollow"">BeautifulSoup</a>, <a href=""http://lxml.de"" rel=""nofollow"">lxml</a>, <a href=""https://pypi.python.org/pypi/pyquery"" rel=""nofollow"">pyQuery</a></p>"
+"Using Python, how can I get the text of an XML element when a sibling element's tag is the string I am looking for?: <p>I hope this is an easy question.  I will try to be clear on what I am trying to accomplish.  Below is just a small snippet of what my XML file looks like.  What I am trying to do is see if the  element structure exists.  If so, the code proceeds.  I then try to look through all of the  elements and if child element (test) is False, then I would like to get the text of the id element.  The following code I have will work if the  element is before the  element.  I want to make sure that whatever order ID is list in (before or after the ) that I get the appropriate child id belonging to the appropriate  parent.  Currently I am using element tree.</p>
+
+<pre><code>&lt;data&gt;
+&lt;cs&gt;
+    &lt;c&gt;
+        &lt;id&gt;1&lt;/id&gt;
+        &lt;test&gt;True&lt;/test&gt;
+        &lt;test2&gt;False&lt;/test2&gt;
+        &lt;test3&gt;False&lt;/test3&gt;
+        &lt;test4&gt;True&lt;/test4&gt;
+    &lt;/c&gt;
+    &lt;c&gt;
+        &lt;test&gt;False&lt;/test&gt;
+        &lt;test2&gt;False&lt;/test2&gt;
+        &lt;test3&gt;False&lt;/test3&gt;
+        &lt;id&gt;2&lt;/id&gt;
+        &lt;test4&gt;True&lt;/test4&gt;
+    &lt;/c&gt;
+&lt;/cs&gt;
+</code></pre>
+
+<p></p>
+
+<pre><code>elementTree = self.param2
+isCS = elementTree.find('./cs')
+getCS = elementTree.findall('./cs')
+CIDs = []
+
+if isCS is None:
+    raise Exception(""Unable to find the 'cs' element structure under &lt;data&gt;. Failed to build a list of CID's."")
+else:
+    # Build the list of CID's.
+    for cs in getCS:
+        for c in cs:
+            for child in c.getchildren():
+                if str(child.tag).lower() == 'id':
+                    myid = child.text
+                elif str(child.tag).lower() == 'test' and str(child.text).lower() == 'false':
+                    CIDs.append(myid)
+
+    print CIDs
+</code></pre>
+
+<p>What I am getting (depending on the order which the  element is listed) is the following output:</p>
+
+<p>1</p>
+
+<p>When I am really expecting the following:</p>
+
+<p>2</p>
+
+<p>I just need to know how I can run specific tests on the subelements of  and get data depending on what I find in the text of .</p>","<p>Not tested. </p>
+
+<pre><code># Build the list of CID's.
+for cs in getCS:
+    for c in cs:
+        myid = None
+        mytest = None
+        for child in c.getchildren():
+            if str(child.tag).lower() == 'id':
+                myid = child.text
+            elif str(child.tag).lower() == 'test' and str(child.text).lower() == 'false':
+                mytest = True
+        if myid and mytest:
+            CIDs.append(myid)
+
+print CIDs
+</code></pre>
+
+<p>Probably it can be done in different way - using some special function or <code>find()</code>, <code>findall()</code> on <code>c</code> element.</p>
+
+<hr>
+
+<p>EDIT:</p>
+
+<p>Example with <code>lxml</code> (it is only example so it is no ""bulletproof"")</p>
+
+<pre><code>import lxml.etree
+
+xml = '''&lt;data&gt;
+&lt;cs&gt;
+    &lt;c&gt;
+        &lt;id&gt;1&lt;/id&gt;
+        &lt;test&gt;True&lt;/test&gt;
+        &lt;test2&gt;False&lt;/test2&gt;
+        &lt;test3&gt;False&lt;/test3&gt;
+        &lt;test4&gt;True&lt;/test4&gt;
+    &lt;/c&gt;
+    &lt;c&gt;
+        &lt;test&gt;False&lt;/test&gt;
+        &lt;test2&gt;False&lt;/test2&gt;
+        &lt;test3&gt;False&lt;/test3&gt;
+        &lt;id&gt;2&lt;/id&gt;
+        &lt;test4&gt;True&lt;/test4&gt;
+    &lt;/c&gt;
+&lt;/cs&gt;
+&lt;/data&gt;'''
+
+tree = lxml.etree.fromstring(xml)
+
+all_c = tree.findall('./cs/c')
+
+#print all_c
+
+results = []
+
+for c in all_c:
+    #print c
+
+    myid = c.find('id').text
+    mytest = (c.find('test').text.lower() == 'false')
+
+    print myid, mytest
+
+    if myid and mytest: 
+        results.append(myid)
+
+print ""results:"", results   
+</code></pre>"
+"Find div by multiple elements with Selenium WebDriver and Python: <pre><code>&lt;article&gt;
+&lt;div class=&quot;inner-article&quot;&gt;
+&lt;h1&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_1&quot;&gt;Tee&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_1&quot;&gt;Light Olive&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;/article&gt;
+
+&lt;article&gt;
+&lt;div class=&quot;inner-article&quot;&gt;
+&lt;h1&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_2&quot;&gt;Tee&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_2&quot;&gt;Navy&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;/article&gt;
+
+&lt;article&gt;
+&lt;div class=&quot;inner-article&quot;&gt;
+&lt;h1&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_3&quot;&gt;Tee&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_3&quot;&gt;Black&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;/article&gt;
+
+&lt;article&gt;
+&lt;div class=&quot;inner-article&quot;&gt;
+&lt;h1&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_4&quot;&gt;sweater&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_4&quot;&gt;Light Olive&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;/article&gt;
+
+&lt;article&gt;
+&lt;div class=&quot;inner-article&quot;&gt;
+&lt;h1&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_5&quot;&gt;sweater&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_5&quot;&gt;Navy&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;/article&gt;
+
+&lt;article&gt;
+&lt;div class=&quot;inner-article&quot;&gt;
+&lt;h1&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_6&quot;&gt;sweater&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_6&quot;&gt;Black&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;/article&gt;
+</code></pre>
+<p><em>if possible we have to rely on hypertext ('black', 'tee', sweater' and so on) because the website is dynamic and then they could remove tags like h1, p and so on. ty very much for the attention</em></p>
+<p>Suppose I want to click the div of the black sweater (note: <strong>we are online on a dynamic website</strong> and between the divs and around the divs we assume that there are indeterminate other divs so let's <strong>forget that the div of the black sweater is the last one</strong>).</p>
+<ol>
+<li>We can't rely on URL addresses because they are dynamic.</li>
+<li>We can't use</li>
+</ol>
+<pre><code>driver.find_element_by_link_text ('sweater'). click ()
+</code></pre>
+<p>because it would click the div of the Light Olive sweater.</p>
+<ol start=""3"">
+<li>We can't use</li>
+</ol>
+<pre><code>driver.find_element_by_link_text ('Black'). click ()
+</code></pre>
+<p>because it would click the first div of the black Tee.</p>
+<p>As you can see the same article's divs are identical but the second link changes.</p>","<p>You can achieve this with the <code>xpath</code> selectors in two steps(I'm using here lxml.html for example, but it should be easily converted to selenium webdriver <code>.find_element_by_xpath()</code>):</p>
+<pre><code>from lxml import html
+
+s = &quot;&quot;&quot;
+&lt;article&gt;
+&lt;div class=&quot;inner-article&quot;&gt;
+&lt;h1&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_1&quot;&gt;Tee&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_1&quot;&gt;Light Olive&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;/article&gt;
+
+&lt;article&gt;
+&lt;div class=&quot;inner-article&quot;&gt;
+&lt;h1&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_2&quot;&gt;Tee&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_2&quot;&gt;Navy&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;/article&gt;
+
+&lt;article&gt;
+&lt;div class=&quot;inner-article&quot;&gt;
+&lt;h1&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_3&quot;&gt;Tee&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_3&quot;&gt;Black&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;/article&gt;
+
+&lt;article&gt;
+&lt;div class=&quot;inner-article&quot;&gt;
+&lt;h1&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_4&quot;&gt;sweater&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_4&quot;&gt;Light Olive&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;/article&gt;
+
+&lt;article&gt;
+&lt;div class=&quot;inner-article&quot;&gt;
+&lt;h1&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_5&quot;&gt;sweater&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_5&quot;&gt;Navy&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;/article&gt;
+
+&lt;article&gt;
+&lt;div class=&quot;inner-article&quot;&gt;
+&lt;h1&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_6&quot;&gt;sweater&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;&lt;a class=&quot;name-link&quot; href=&quot;dinamic_URL_6&quot;&gt;Black&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;/article&gt;
+&quot;&quot;&quot;
+
+tree = html.fromstring(s)
+
+# step 1 filter out all divs including Black &quot;items&quot;
+divs = [el.getparent().getparent() for el in tree.xpath(&quot;//a[contains(text(), 'Black')]&quot;)]
+
+# step 2 filter our divs from step one to get the &quot;sweater&quot; item
+needle = list(filter(lambda div: div.xpath(&quot;h1/a[contains(text(), 'sweater')]&quot;), divs))[0]
+</code></pre>
+<p>Using selenium webdriver should be something like this(not tested, selenium not installed on my dev env):</p>
+<pre><code>
+# step 1 filter out all divs including Black &quot;items&quot;
+divs = [el.find_element_by_xpath('..').find_element_by_xpath('..') for el in 
+        web_driver.find_element_by_xpath(&quot;//a[contains(text(), 'Black')]&quot;)]
+
+# step 2 filter our divs from step one to get the &quot;sweater&quot; item
+needle = list(filter(
+    lambda div: div.find_element_by_xpath(&quot;h1/a[contains(text(), 'sweater')]&quot;), divs))[0]
+</code></pre>"
+"XML parsing problem, some Bengali character shows ParseError in Python ElementTree: <p>Some of Bengali character such as 'ৎ' , '।' shows ParseError when I'm trying to parse an xml file ""temp.xml"" below:</p>
+
+<pre><code>&lt;?xml version=""1.0"" encoding=""UTF-8""?&gt;
+&lt;doc&gt;
+  &lt;WORD&gt;
+  &lt;অ&gt;
+    &lt;অসুখে&gt;অসুখ&lt;/অসুখে&gt;
+    &lt;অসৎকে&gt;অসৎ&lt;/অসৎকে&gt;
+  &lt;/অ&gt;
+  &lt;/WORD&gt;
+&lt;/doc&gt;
+</code></pre>
+
+<p>to parse it using python:</p>
+
+<pre><code>import xml.etree.ElementTree as ET    
+
+trees = ET.parse('temp.xml')
+roots = trees.getroot()
+</code></pre>
+
+<p>gives error:</p>
+
+<pre><code>File ""&lt;string&gt;"", line unknown
+  ParseError: not well-formed (invalid token): line 6, column 11
+</code></pre>
+
+<p>the error is for the line of xml file (for 'ৎ' character) :</p>
+
+<pre><code>&lt;অসৎকে&gt;অসৎ&lt;/অসৎকে&gt;
+</code></pre>
+
+<p>How can I parse this characters?</p>","<p>It looks like the XML parser has not been updated to reflect the changes in XML 1.0, Fifth Edition, regarding allowed characters in names of elements, attributes etc. </p>
+
+<p>The XML document in the question is rejected by ElementTree and minidom (which use the Expat parser), but it is accepted by lxml (which uses libxml2). </p>
+
+<p>The rules for valid characters in the original XML 1.0 recommendation from 1998 were based on Unicode 2.0. The Bengali character 'ৎ' (U+09CE) was added in Unicode 4.1.0 (released in 2005). Characters not included in Unicode 2.0 were originally not allowed in element names. In the Fifth Edition of XML 1.0 from 2008 (<a href=""https://www.w3.org/TR/REC-xml/"" rel=""nofollow noreferrer"">https://www.w3.org/TR/REC-xml/</a>), the restrictions were relaxed so that almost any character can be used.</p>
+
+<p>For more on this, see ""Rationale"" in the ""Suggestions for XML Names (Non-Normative)"" section in the errata for XML 1.0, Fourth Edition (<a href=""https://www.w3.org/XML/xml-V10-4e-errata"" rel=""nofollow noreferrer"">https://www.w3.org/XML/xml-V10-4e-errata</a>).</p>
+
+<p>See also <a href=""https://norman.walsh.name/2008/02/07/xml105e"" rel=""nofollow noreferrer"">https://norman.walsh.name/2008/02/07/xml105e</a>.</p>"
+"Extracting content of next and different tag using Beautifulsoup: <p>I want to <strong>scrape</strong> some particular peice of html code.</p>
+<p>my python code :</p>
+<pre><code>    soup = '''
+
+            &lt;p&gt;
+                &lt;strong&gt; abc &lt;/strong&gt;
+            &lt;/p&gt;
+
+            &lt;ul&gt;
+                &lt;li&gt; 123 &lt;/li&gt;
+                &lt;li&gt; 456 &lt;/li&gt;
+            &lt;/ul&gt;
+    '''
+
+    import bs4
+    soup = bs4.BeautifulSoup(soup, 'html.parser')
+    for link in soup.find_all('strong') :
+        k = link.next_sibling
+        print (link.text)
+        print (k)
+        print (k.text)
+</code></pre>
+<p>and output :</p>
+<pre><code>    abc
+
+    AttributeError: 'NavigableString' object has no attribute 'text'
+</code></pre>
+<p>How can i extract &quot;123&quot; and &quot;456&quot; using above tags?</p>
+<p>Thanks .</p>","<p>You wanted <code>123</code> and <code>456</code> so you can use :has and <code>:contains</code> (bs4 4.7.1+) to target the parent <code>p</code> having the child <code>strong</code> with text <code>'abc'</code>, then use an adjacent sibling combinator with type selector to get the adjacent <code>ul</code>; finally use a child combinator with <code>li</code> type selector to get the child <code>li</code> elements.</p>
+
+<pre><code>from bs4 import BeautifulSoup as bs
+
+html = '''
+
+            &lt;p&gt;
+                &lt;strong&gt; abc &lt;/strong&gt;
+            &lt;/p&gt;
+
+            &lt;ul&gt;
+                &lt;li&gt; 123 &lt;/li&gt;
+                &lt;li&gt; 456 &lt;/li&gt;
+            &lt;/ul&gt;
+    '''
+
+soup = bs(html, 'lxml')
+print([i.text for i in soup.select('p:has(&gt;strong:contains(""abc"")) + ul &gt; li')])
+</code></pre>
+
+<p>Read about css selectors <a href=""https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors"" rel=""nofollow noreferrer"">here</a>. </p>"
+"Selenium Python minimize browser window: <p>I know how to call a method to maximize window from driver object.</p>
+
+<pre><code>driver.maximize_window()
+</code></pre>
+
+<p>But what method should I use when I need to minimize browser window (hide it)?
+Actually, driver object hasn't maximize_window attribute.
+My goal to work silently with the browser window. I don't want to see it on my PC.</p>","<p>Just <code>driver.minimize_window()</code> or use a headless browser as PhamtonJS or Chromium.</p>
+
+<p>Example:</p>
+
+<pre><code>PROXY_SERVER = ""127.0.0.1:5566"" # IP:PORT or HOST:PORT
+
+options = webdriver.ChromeOptions()
+options.binary_location = r""/usr/bin/opera"" # path to opera executable
+options.add_argument('--proxy-server=%s' % PROXY_SERVER)
+driver = webdriver.Opera(executable_path=r""/home/prestes/Tools/operadriver_linux64/operadriver"", options=options)
+driver.minimize_window()
+driver.get(url)
+
+html = driver.page_source
+soup = BeautifulSoup(html, ""lxml"")
+print(html)
+
+driver.quit()
+</code></pre>"
+"Webscraping python promotion information: <p>I'm new working with python and trying to scrape a website using beautifulsoup.
+I can get information like the title and price but I can't get the promotion-information</p>
+<p>Website: <a href=""https://www.vitaminstore.nl/product/vitacura-vitamine-c-500-mg-calcium-ascorbaat-tabletten-1306065"" rel=""nofollow noreferrer"">https://www.vitaminstore.nl/product/vitacura-vitamine-c-500-mg-calcium-ascorbaat-tabletten-1306065</a></p>
+<p>Information needed: &quot;Vitacura Vitamine C 1+1 gratis&quot;
+<a href=""https://i.stack.imgur.com/QoVHa.png"" rel=""nofollow noreferrer"">enter image description here</a></p>
+<pre><code>import:
+import requests
+from glob import glob
+from bs4 import BeautifulSoup
+import pandas as pd
+from datetime import datetime
+from time import sleep
+
+HEADERS = ({'User-Agent':
+            'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36',
+            'Accept-Language': 'en-US, en;q=0.5'})
+
+
+
+Promotion = soup.find(&quot;div&quot;, { &quot;class&quot; : &quot;o-Promotions__Info&quot; }).findall('span', { &quot;class&quot; : &quot;o-Promotions__Title&quot; })
+</code></pre>
+<p>Could anyone help me fix this?</p>
+<p>Many thanx!!</p>","<p>The <em>selenium</em> module is ideal for processing web pages that are reliant on Javascript. You can achieve your objective like this:</p>
+<pre><code>from bs4 import BeautifulSoup as BS
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+
+options = webdriver.ChromeOptions()
+options.add_argument('--headless')
+CLASS = 'o-Promotions__Title'
+
+with webdriver.Chrome(options=options) as driver:
+    driver.get('https://www.vitaminstore.nl/product/vitacura-vitamine-c-500-mg-calcium-ascorbaat-tabletten-1306065')
+    # wait up to 5 seconds for the relevant class to be observable
+    WebDriverWait(driver, 5).until(
+        EC.presence_of_element_located((By.CLASS_NAME, CLASS)))
+    span = BS(driver.page_source, 'lxml').select_one(f'span.{CLASS}')
+    print(span.text.strip())
+</code></pre>
+<p><strong>Output:</strong></p>
+<pre><code>Vitacura Vitamine C 1+1 gratis
+</code></pre>
+<p><strong>Note:</strong></p>
+<p>You will need to install chromedriver for this. Details on selenium website</p>"
+"How do I scrape a randomly generated sentence from this website: <p>Im using python 3.8x to try and scrape a randomly generated sentence from this website. <a href=""https://randomwordgenerator.com/sentence.php"" rel=""nofollow noreferrer"">https://randomwordgenerator.com/sentence.php</a>
+Except when I read it, the generated sentence isn't in the HTML. Can any one help me find a way to scrape the generated sentence? I found the HTML tags when the sentence is generated but it doesn't generate when I request.</p>
+
+<p>Here is my code.</p>
+
+<pre><code>random_sentence_webpage = 'https://randomwordgenerator.com/sentence.php'
+
+# The HTML tag for the generated sentence
+start_marker = '""support-sentence""&gt;'
+end_marker = '&lt;/span&gt;'
+
+from urllib.request import urlopen, Request
+headers = {'User-Agent': 'Chrome/81.0.4044.129'}
+reg_url = random_sentence_webpage
+req = Request(url=reg_url, headers=headers) 
+html = urlopen(req).read()
+html_text = html.decode('utf-8', 'backslashreplace')
+
+starting_position = html_text.find(start_marker)
+end_position = html_text.find(end_marker,starting_position)
+
+random_generated_sentence = html_text[starting_position + len(start_marker):end_position]
+
+print(random_generated_sentence)
+</code></pre>","<p>When I run your code I get a blob of html output.</p>
+
+<pre><code>&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=""container pt bottom_desc""&gt;
+&lt;div class=""row""&gt;
+&lt;div class=""col-md-6""&gt;
+&lt;p&gt;If you're visiting this page, you're likely here because you're searching for a random sentence. Sometimes a random word just isn't enough, and that is where the random sentence generator comes into play. By inputting the desired number, you can make a list of as many random sentences as you want or need. Producing random sentences can be helpful in a number of different ways.&lt;/p&gt;
+&lt;p&gt;For writers, a random sentence can help them get their creative juices flowing. Since the topic of the sentence is completely unknown, it forces the writer to be creative when the sentence appears. There are a number of different ways a writer can use the random sentence for creativity. The most common way to use the sentence is to begin a story. Another option is to include it somewhere in the story. A much more difficult challenge is to use it to end a story. In any of these cases, it forces the writer to think creatively since they have no idea what sentence will appear from the tool.&lt;/p&gt;
+&lt;p&gt;For those writers who have writers' block, this can be an excellent way to take a step to crumbling those walls. By taking the writer away from the subject matter that is causing the block, a random sentence may allow them to see the project they're working on in a different light and perspective. Sometimes all it takes is to get that first sentence down to help break the block.&lt;/p&gt;
+&lt;p&gt;It can also be successfully used as a daily exercise to get writers to begin writing. Being shown a random sentence and using it to complete a paragraph each day can be an excellent way to begin any writing session.&lt;/p&gt;
+&lt;p&gt;Random sentences can also spur creativity in other types of projects being done. If you are trying to come up with a new concept, a new idea or a new product, a random sentence may help you find unique qualities you may not have considered. Trying to incorporate the sentence into your project can help you look at it in different and unexpected ways than you would normally on your own.&lt;/p&gt;
+&lt;p&gt;It can also be a fun way to surprise others. You might choose to share a random sentence on social media just to see what type of reaction it garners from others. It's an unexpected move that might create more conversation than a typical post or tweet.&lt;/p&gt;
+&lt;p&gt;These are just a few ways that one might use the random sentence generator for their benefit. If you're not sure if it will help in the way you want, the best course of action is to try it and see. Have several random sentences generated and you'll soon be able to see if they can help with your project.&lt;/p&gt;
+&lt;p&gt;Our goal is to make this tool as useful as possible. For anyone who uses this tool and comes up with a way we can improve it, we'd love to know your thoughts. Please contact us so we can consider adding your ideas to make the random sentence generator the best it can be.&lt;/p&gt;
+&lt;div class=""faq"" id=""faq"" itemscope="""" itemtype=""https://schema.org/FAQPage""&gt;&lt;h2 style=""margin-bottom:25px""&gt;Frequently Asked Questions&lt;/h2&gt;
+&lt;div itemscope="""" itemprop=""mainEntity"" itemtype=""https://schema.org/Question""&gt;
+&lt;h3 class=""faq__title"" itemprop=""name""&gt;Are random sentences computer generated?&lt;/h3&gt;
+&lt;div itemscope="""" itemprop=""acceptedAnswer"" itemtype=""https://schema.org/Answer""&gt;
+&lt;div itemprop=""text""&gt;&lt;p&gt;No, the random sentences in our generator are not computer generated. We considered using computer generated sentences when building this tool, but found the results to be disappointing. Even though it took a lot of time, all the sentences in this generator were created by us.&lt;/p&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div itemscope="""" itemprop=""mainEntity"" itemtype=""https://schema.org/Question""&gt;
+&lt;h3 class=""faq__title"" itemprop=""name""&gt;Can I use these random sentences for my project?&lt;/h3&gt;
+&lt;div itemscope="""" itemprop=""acceptedAnswer"" itemtype=""https://schema.org/Answer""&gt;
+&lt;div itemprop=""text""&gt;&lt;p&gt;Yes! Feel free to use any of the random sentences for any project that you may be doing.&lt;/p&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+
+<p>I guess you want to extract these p tags and random texts.</p>
+
+<p>You can use beautifulsoup to format your output. When I run your code I get many random text strings embedded in <p></p> tags. You need to find the correct paths to find those p tags and get the text.</p>
+
+<p>This is a demo. You need to change it based on your needs.</p>
+
+<pre><code>random_sentence_webpage = 'https://randomwordgenerator.com/sentence.php'
+
+# The HTML tag for the generated sentence
+start_marker = '""support-sentence""&gt;'
+end_marker = '&lt;/span&gt;'
+
+from urllib.request import urlopen, Request
+headers = {'User-Agent': 'Chrome/81.0.4044.129'}
+reg_url = random_sentence_webpage
+req = Request(url=reg_url, headers=headers) 
+html = urlopen(req).read()
+html_text = html.decode('utf-8', 'backslashreplace')
+starting_position = html_text.find(start_marker)
+end_position = html_text.find(end_marker,starting_position)
+
+random_generated_sentence = html_text[starting_position + len(start_marker):end_position]
+
+# print(random_generated_sentence)
+
+from bs4 import BeautifulSoup
+
+
+soup = BeautifulSoup (random_generated_sentence, features=""lxml"")
+
+block_ps =  soup.findAll(""div"", {""class"": ""col-md-6""})
+for a in block_ps:
+  print(a.findAll('p'))
+</code></pre>"
