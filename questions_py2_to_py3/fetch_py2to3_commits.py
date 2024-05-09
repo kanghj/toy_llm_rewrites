@@ -41,7 +41,7 @@ def find_commits():
             
         search_size = 0
         page = 1
-        while len(result) < 3:
+        while len(result) < 300:
             params = {
                 "q": "upgrade python python3",
                 # "per_page": per_page,

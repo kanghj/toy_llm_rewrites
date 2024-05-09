@@ -51,18 +51,19 @@ def ask_question(query):
 import csv
 with open('query.csv', 'r') as i_f,\
         open('response_rag.csv', 'w+') as o_f_rag,\
-        open('response_no_rag.csv', 'w+') as o_f_no_rag:
+        open('response_no_rag.csv', 'w+') as o_f_no_rag,\
+        open('query_responses.csv', 'w+') as full:
+    
     reader = csv.reader(i_f)
-    next(reader)
-
-    for row in reader:
-        rag, no_rag = ask_question(row[0])
-    
-    
     writer_rag = csv.writer(o_f_rag)
     writer_no_rag = csv.writer(o_f_no_rag)
+    writer_full = csv.writer(full)
 
-    writer_rag.writerow(rag)
-    writer_no_rag.writerow(no_rag)
+    next(reader)
+    for row in reader:
+        rag, no_rag = ask_question(row[0])
 
-# write to 
+        writer_rag.writerow(rag)
+        writer_no_rag.writerow(no_rag)
+        writer_full.writerow([row[0], rag, no_rag])
+
