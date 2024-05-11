@@ -1,0 +1,2894 @@
+question_id,title,question_body,tags,answer_id,answer_body
+62450826,Run python script from Node.js (child_process) with named arguments,"<p>I have a python script which can be run with this argument on the command line:</p>
+<pre><code>python2 arg1 --infile abc.csv --encrypt true --keyfile xyz.bin 1234 WOW path
+</code></pre>
+<p>However, if I try to do the same thing from Node.js child process, I get an error:</p>
+<pre><code>const spawn = require(&quot;child_process&quot;).spawn;
+
+const process = spawn(&quot;python2&quot;, [
+  path.join(rootDir, &quot;public&quot;, &quot;python&quot;, &quot;script.py&quot;),
+  &quot;arg1&quot;,
+  &quot;--infile abc.csv&quot;,
+  &quot;--encrypt true&quot;,
+  &quot;--keyfile xyz.bin&quot;,
+  &quot;1234&quot;,
+  &quot;WOW&quot;,
+  &quot;path&quot;,
+]);
+</code></pre>
+<p>It is not running and giving an error.
+But, If I run without the NAMED ARGUMENTS (--encrypt true) etc, it runs successfully:</p>
+<pre><code>const process = spawn(&quot;python2&quot;, [
+  path.join(rootDir, &quot;public&quot;, &quot;python&quot;, &quot;script.py&quot;),
+  &quot;arg1&quot;,
+  &quot;1234&quot;,
+  &quot;WOW&quot;,
+  &quot;path&quot;,
+]);
+</code></pre>
+<p>I think my way of passing the NAMED args might be incorrect.
+Please help!</p>",python|node.js|python-2.7|child-process|spawn,62450898,"<p>You may find usefull this atricle:</p>
+
+<p><a href=""https://medium.com/swlh/run-python-script-from-node-js-and-send-data-to-browser-15677fcf199f"" rel=""nofollow noreferrer"">https://medium.com/swlh/run-python-script-from-node-js-and-send-data-to-browser-15677fcf199f</a></p>"
+62450826,Run python script from Node.js (child_process) with named arguments,"<p>I have a python script which can be run with this argument on the command line:</p>
+<pre><code>python2 arg1 --infile abc.csv --encrypt true --keyfile xyz.bin 1234 WOW path
+</code></pre>
+<p>However, if I try to do the same thing from Node.js child process, I get an error:</p>
+<pre><code>const spawn = require(&quot;child_process&quot;).spawn;
+
+const process = spawn(&quot;python2&quot;, [
+  path.join(rootDir, &quot;public&quot;, &quot;python&quot;, &quot;script.py&quot;),
+  &quot;arg1&quot;,
+  &quot;--infile abc.csv&quot;,
+  &quot;--encrypt true&quot;,
+  &quot;--keyfile xyz.bin&quot;,
+  &quot;1234&quot;,
+  &quot;WOW&quot;,
+  &quot;path&quot;,
+]);
+</code></pre>
+<p>It is not running and giving an error.
+But, If I run without the NAMED ARGUMENTS (--encrypt true) etc, it runs successfully:</p>
+<pre><code>const process = spawn(&quot;python2&quot;, [
+  path.join(rootDir, &quot;public&quot;, &quot;python&quot;, &quot;script.py&quot;),
+  &quot;arg1&quot;,
+  &quot;1234&quot;,
+  &quot;WOW&quot;,
+  &quot;path&quot;,
+]);
+</code></pre>
+<p>I think my way of passing the NAMED args might be incorrect.
+Please help!</p>",python|node.js|python-2.7|child-process|spawn,62450942,"<p>You need to split each part of the argument:</p>
+
+<pre><code>const process = spawn(""python2"", [
+  path.join(rootDir, ""public"", ""python"", ""script.py""),
+  ""arg1"",
+  ""--infile"",
+      ""abc.csv"", // indentation for clarity, it's not necessary
+  ""--encrypt"",
+      ""true"",
+  ""--keyfile"",
+      ""xyz.bin"",
+  ""1234"",
+  ""WOW"",
+  ""path"",
+]);
+</code></pre>
+
+<p>Your original script is similar to running this on the command prompt:</p>
+
+<pre><code>python script.py arg1 ""--infile abc.csv"" ""--encrypt true"" ""--keyfile xyz.bin"" 1234 WOW path
+</code></pre>
+
+<p>Basically you are passing the argument named <code>--infile abc.csv</code> with the value <code>--encrypt true</code>. Which is not what you intend to run. What you want is:</p>
+
+<pre><code>python script.py arg1 --infile abc.csv --encrypt true --keyfile xyz.bin 1234 WOW path
+</code></pre>"
+58206250,"Parsing XML: Python ElementTree, find elements and its parent elements without other elements in same parent","<p>I am using python's ElementTree library to parse an XML file which has the following structure. I am trying to get the xml string corresponding to entity with id = 192 with all its parents (folders) but without other entities</p>
+
+<pre><code>   &lt;catalog&gt;
+        &lt;folder name=""entities""&gt;
+            &lt;entity id=""102""&gt;
+
+            &lt;/entity&gt;
+            &lt;folder name=""newEntities""&gt;
+                &lt;entity id=""192""&gt;
+
+                &lt;/entity&gt;
+
+                &lt;entity id=""2982""&gt;
+
+                &lt;/entity&gt;
+            &lt;/folder&gt;
+        &lt;/folder&gt;
+    &lt;/catalog&gt;
+</code></pre>
+
+<p>The required result should be</p>
+
+<pre><code>    &lt;catalog&gt;
+        &lt;folder name=""entities""&gt;
+            &lt;folder name=""newEntities""&gt;
+                &lt;entity id=""192""&gt;
+
+                &lt;/entity&gt;
+            &lt;/folder&gt;
+        &lt;/folder&gt;
+    &lt;/catalog&gt;
+</code></pre>
+
+<p>assuming the 1st xml string is stored in a variable called xml_string</p>
+
+<pre><code>tree = ET.fromstring(xmlstring)
+id = 192
+required_element = tree.find("".//entity[@id='"" + id + ""']"")
+</code></pre>
+
+<p>This gets the xml element for the required entity but not the parent folders, any quick solution fix for this?</p>",python|xml|python-2.7,58215825,"<p>The challenge here is to bypass the fact that ET has no parent information. The solution is to use <code>parent_map</code> </p>
+
+<pre><code>import copy
+import xml.etree.ElementTree as ET
+import xml.dom.minidom as minidom
+
+xml = '''&lt;catalog&gt;
+        &lt;folder name=""entities""&gt;
+            &lt;entity id=""102""&gt;
+
+            &lt;/entity&gt;
+            &lt;folder name=""newEntities""&gt;
+                &lt;entity id=""192""&gt;
+
+                &lt;/entity&gt;
+
+                &lt;entity id=""2982""&gt;
+
+                &lt;/entity&gt;
+            &lt;/folder&gt;
+        &lt;/folder&gt;
+    &lt;/catalog&gt;'''
+
+
+def prettify(elem):
+    """"""Return a pretty-printed XML string for the Element.
+    """"""
+    rough_string = ET.tostring(elem, 'utf-8')
+    reparsed = minidom.parseString(rough_string)
+    return reparsed.toprettyxml(indent=""\t"")
+
+root = ET.fromstring(xml)
+parent_map = {c: p for p in root.iter() for c in p}
+_id = 192
+required_element = root.find("".//entity[@id='"" + str(_id) + ""']"")
+_path = [copy.deepcopy(required_element)]
+while True:
+    parent = parent_map.get(required_element)
+    if parent:
+        _path.append(copy.deepcopy(parent))
+        required_element = parent
+    else:
+        break
+idx = len(_path) - 1
+while idx &gt;= 1:
+    _path[idx].clear()
+    _path[idx].append(_path[idx-1])
+    idx -= 1
+
+print(prettify(_path[-1]))
+</code></pre>
+
+<p>output</p>
+
+<pre><code>&lt;?xml version=""1.0"" ?&gt;
+&lt;catalog&gt;
+    &lt;folder&gt;
+        &lt;folder&gt;
+            &lt;entity id=""192""&gt;
+
+                &lt;/entity&gt;
+
+
+
+        &lt;/folder&gt;
+    &lt;/folder&gt;
+&lt;/catalog&gt;
+</code></pre>"
+59101944,Take odd one out from a list when comparing with a filtered column using python,"<p>I have an excel as shown below:</p>
+
+<p><a href=""https://i.stack.imgur.com/dmKEo.png"" rel=""nofollow noreferrer"">Input File</a></p>
+
+<p>Now I want to filter fruits first from ""Items"" column and check which one in list of ""list"" column is not present in the list. For example: here ""grapes"" is not present in ""Name"" column. So I want grapes as output in next column as shown below.</p>
+
+<p><a href=""https://i.stack.imgur.com/ipx7G.png"" rel=""nofollow noreferrer"">Expected Output Shown</a></p>
+
+<p>The same is to be done for many by filtering each items one by one as I have many items.</p>
+
+<p>Please suggest or give some hints so that i can start this code.</p>",python-3.x|pandas|python-2.7,59320639,"<p>I am naming the excel as Book1</p>
+
+<pre><code>import pandas as pd
+
+frame = pd.read_excel(""Book1.xlsx"")
+
+frame_list_as_String = frame.list.tolist()
+frame_list = [x.split(',') for x in frame_list_as_String]
+frame_Name = frame.Name.tolist()
+frame_col3=[]
+for item in frame_list :
+    frame_col3.append(list(set(items)-set(frame_Name)))
+
+frame[""col3""]=frame_col3
+
+frame.to_excel(""df.xlsx"", index = False)
+</code></pre>"
+47723643,How to pass object as paramaters to function?,"<p>I have defination of function:</p>
+
+<pre><code>def setup(self, **kwargs):
+    pass
+</code></pre>
+
+<p>And calling this like:</p>
+
+<pre><code>params = {
+        ""advert_id"": adv_id,
+        ""enabled"": True,
+        ""from_hour"": 2,
+        ""to_hour"": 1,
+        ""interval"": 0,
+        ""weekdays"": [1]
+    }
+
+setup(params)
+</code></pre>
+
+<p>I tried to pass <code>params</code> as object, but it does not work. I know correct way is:</p>
+
+<pre><code>setup(advert_id=1,enabled=True,from_hour=3,to_hour=4,interval=0,weekdays=[])
+</code></pre>
+
+<p>Anyway I don't want to enumerate all parameters and want to pack it to object.</p>",python|python-2.7,47723659,"<p>Unpack <code>params</code> in the function call:</p>
+
+<pre><code>def setup(self, **kwargs):
+   pass
+params = {
+    ""advert_id"": adv_id,
+    ""enabled"": True,
+    ""from_hour"": 2,
+    ""to_hour"": 1,
+    ""interval"": 0,
+    ""weekdays"": [1]
+}
+
+setup(**params)
+</code></pre>"
+52311003,Is there a simple way to add a border to Kivy Buttons,"<p>I am using <code>python-2.7</code> and <code>kivy</code>. Can someone tell me that how to add a different colour border to kivy button. </p>
+
+<h1>test.py</h1>
+
+<pre><code>from kivy.uix.screenmanager import Screen
+from kivy.app import App
+from kivy.core.window import Window
+
+Window.clearcolor = (0.5, 0.5, 0.5, 1)
+Window.size = (300, 100)
+
+
+class User(Screen):
+    pass
+
+
+class Test(App):
+
+    def build(self):
+        return self.root
+
+
+if __name__ == '__main__':
+    Test().run()
+</code></pre>
+
+<h1>test.py</h1>
+
+<pre><code>User:
+    BoxLayout:
+
+        Button:
+            background_normal: ''
+            text: 'Ok'
+</code></pre>",python|python-2.7|kivy,63402321,"<p>you can use kivymd
+in .py file</p>
+<pre><code>from kivymd.app import MDApp
+Window.clearcolor = (0.5, 0.5, 0.5, 1)
+Window.size = (300, 100)
+
+class User(Screen):
+     pass
+
+class Test(MDApp):
+    def build(self):
+        return self.root
+
+
+if __name__ == '__main__':
+        Test().run()
+</code></pre>
+<p>and .kv</p>
+<pre><code>MDRectangleFlatButton:
+        background_normal: ''
+        text: 'Ok'
+</code></pre>"
+52311003,Is there a simple way to add a border to Kivy Buttons,"<p>I am using <code>python-2.7</code> and <code>kivy</code>. Can someone tell me that how to add a different colour border to kivy button. </p>
+
+<h1>test.py</h1>
+
+<pre><code>from kivy.uix.screenmanager import Screen
+from kivy.app import App
+from kivy.core.window import Window
+
+Window.clearcolor = (0.5, 0.5, 0.5, 1)
+Window.size = (300, 100)
+
+
+class User(Screen):
+    pass
+
+
+class Test(App):
+
+    def build(self):
+        return self.root
+
+
+if __name__ == '__main__':
+    Test().run()
+</code></pre>
+
+<h1>test.py</h1>
+
+<pre><code>User:
+    BoxLayout:
+
+        Button:
+            background_normal: ''
+            text: 'Ok'
+</code></pre>",python|python-2.7|kivy,52313581,"<p>You may want to look at the border property of the Button Class,basically:
+In kiv:</p>
+
+<pre><code>Button:
+        border: (10,10,10,10)
+</code></pre>
+
+<p>I believe this will be the border image used by <code>BorderImage</code></p>
+
+<p>Disclaimer: Not tested but its along those lines</p>"
+52311003,Is there a simple way to add a border to Kivy Buttons,"<p>I am using <code>python-2.7</code> and <code>kivy</code>. Can someone tell me that how to add a different colour border to kivy button. </p>
+
+<h1>test.py</h1>
+
+<pre><code>from kivy.uix.screenmanager import Screen
+from kivy.app import App
+from kivy.core.window import Window
+
+Window.clearcolor = (0.5, 0.5, 0.5, 1)
+Window.size = (300, 100)
+
+
+class User(Screen):
+    pass
+
+
+class Test(App):
+
+    def build(self):
+        return self.root
+
+
+if __name__ == '__main__':
+    Test().run()
+</code></pre>
+
+<h1>test.py</h1>
+
+<pre><code>User:
+    BoxLayout:
+
+        Button:
+            background_normal: ''
+            text: 'Ok'
+</code></pre>",python|python-2.7|kivy,52340542,"<p>I suppose you mean <em>additionnaly</em> to the current background/border.</p>
+
+<p>If so, you probably want to use some canvas instruction.</p>
+
+<p>You probably want to add them in <code>canvas.before</code> so it's drawn <em>before</em> the text of the button.</p>
+
+<p>The instruction you'll use will depend on the effect you want, but Line is probably a good start.</p>
+
+<pre><code>Button:
+    text: 'test'
+    canvas.before:
+        Color:
+            rgba: .5, .5, .5, 1
+        Line:
+            width: 2
+            rectangle: self.x, self.y, self.width, self.height
+</code></pre>"
+52240668,I want to count the number of Palindromes in a text file using python. but this program I wrote is giving me 0 instead of 2,"<p>I want to count the number of Palindromes in a text file using python. but this program I wrote is giving me 0 instead of 2
+Text file:</p>
+
+<pre><code>Tattarrattat was coined by writer James Joyce in a book called Ulysses.
+Aibohphobia is a joke term used to describe the fear of palindromes.
+</code></pre>
+
+<p>Program:</p>
+
+<pre><code>filename = ""palindrome_test.txt""
+x=0
+#initiation
+with open('palindrome_test.txt','r') as text:
+    for line in text: #for loop
+        line = line.split() #to split the line into words
+        for i in range(0,100):
+            if line[i] == line[i][::-1]: 
+                x +=1 #increment
+
+print(x)
+</code></pre>",python|python-3.x|python-2.7|count|palindrome,52240868,"<p>You have two errors in your code. First, the number of words in a line is, in general, not 100. Second, a capital letter is not equal to the corresponding lowercase letter. Here's a corrected version of your program:</p>
+
+<pre><code>count = 0 # x is never a good name
+with open('palindrome_test.txt','r') as text:
+    for line in text: 
+        words = line.lower().split() #split the lowercased line into words
+        for w in words:
+            if w == w[::-1]: 
+                count += 1 #increment
+</code></pre>
+
+<p>Note that the word 'a' is also a palindrome (it happens twice in your text).    </p>
+
+<p>You can replace the for loop with a list comprehension to get a better-looking program:</p>
+
+<pre><code>count = 0
+with open('palindrome_test.txt','r') as text:
+    for line in text: 
+        words = line.lower().split() #split the lowercased line into words
+        count += sum(w == w[::-1] for w in words)
+</code></pre>"
+56315295,SyntaxError in Python robot controller code,"<p>I’m using <a href=""https://approxeng.github.io/approxeng.input/"" rel=""nofollow noreferrer"">approxeng.input.selectbinder</a> for a robot controller and 
+<code>def __init__(self, *requirements, print_events=False, **kwargs):</code> 
+throws up a <code>SyntaxError</code>, specifically the <code>print_events</code> statement. I cannot understand why. This is the full code that gives the error:</p>
+
+<pre><code>from functools import reduce
+from select import select
+from threading import Thread
+
+import approxeng.input.sys as sys
+from approxeng.input.controllers import *
+
+EV_KEY = 1
+EV_REL = 2
+EV_ABS = 3
+
+
+class ControllerResource:
+    """"""
+    General resource which binds one or more controllers on entry and unbinds the event listening thread on exit.
+    """"""
+
+    def __init__(self, *requirements, print_events=True, **kwargs):
+        """"""
+        Create a new resource to bind and access one or more controllers. If no additional arguments are supplied this
+        will find the first controller of any kind enabled by the library. Otherwise the requirements must be provided
+        as a list of ControllerRequirement
+
+        :param requirements:
+            ControllerRequirement instances used, in order, to find and bind controllers. If empty this will
+            be equivalent to supplying a single unfiltered requirement and will match the first specified controller.
+        :param print_events:
+            Defaults to False, if set to True then all events picked up by the binder will be printed to stdout. Use
+            this when you're trying to figure out what events correspond to what axes and buttons!
+        :param kwargs:
+            Any addition keyword arguments are passed to the constructors for the controller classes. This is useful
+            particularly to specify e.g. dead and hot zone ranges on discovery.
+        :raises ControllerNotFoundError:
+            If the requirement can't be satisfied, or no requirements are specified but there aren't any controllers.
+        """"""
+
+        self.discoveries = find_matching_controllers(*requirements, **kwargs)
+        self.unbind = None
+        self.print_events = print_events
+
+    def __enter__(self):
+        """"""
+        Called on entering the resource block, returns the controller passed into the constructor.
+        """"""
+        self.unbind = bind_controllers(*self.discoveries, print_events=self.print_events)
+        if len(self.discoveries) == 1:
+            return self.discoveries[0].controller
+        else:
+            return tuple(discovery.controller for discovery in self.discoveries)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """"""
+        Called on resource exit, unbinds the controller, removing the listening thread.
+        """"""
+        self.unbind()
+
+
+def bind_controllers(*discoveries, print_events=False):
+    """"""
+    Bind a controller or controllers to a set of evdev InputDevice instances, starting a thread to keep those
+    controllers in sync with the state of the hardware.
+
+    :param discoveries:
+        ControllerDiscovery instances specifying the controllers and their associated input devices
+    :param print_events:
+        Defaults to False, if set to True then all events picked up by this binder will be printed to stdout
+    :return: 
+        A function which can be used to stop the event reading thread and unbind from the device
+    """"""
+
+    discoveries = list(discoveries)
+
+    class SelectThread(Thread):
+        def __init__(self):
+            Thread.__init__(self, name='evdev select thread')
+            self.daemon = True
+            self.running = True
+
+            self.device_to_controller_discovery = {}
+            for discovery in discoveries:
+                for d in discovery.devices:
+                    self.device_to_controller_discovery[d.fn] = discovery
+            self.all_devices = reduce(lambda x, y: x + y, [discovery.devices for discovery in discoveries])
+
+        def run(self):
+
+            for discovery in discoveries:
+                discovery.controller.device_unique_name = discovery.name
+
+            while self.running:
+                try:
+                    r, w, x = select(self.all_devices, [], [], 0.5)
+                    for fd in r:
+                        active_device = fd
+                        controller_discovery = self.device_to_controller_discovery[active_device.fn]
+                        controller = controller_discovery.controller
+                        controller_devices = controller_discovery.devices
+                        prefix = None
+                        if controller.node_mappings is not None and len(controller_devices) &gt; 1:
+                            try:
+                                prefix = controller.node_mappings[active_device.name]
+                            except KeyError:
+                                pass
+                        for event in active_device.read():
+                            if print_events:
+                                print(event)
+                            if event.type == EV_ABS or event.type == EV_REL:
+                                controller.axes.axis_updated(event, prefix=prefix)
+                            elif event.type == EV_KEY:
+                                # Button event
+                                if event.value == 1:
+                                    # Button down
+                                    controller.buttons.button_pressed(event.code, prefix=prefix)
+                                elif event.value == 0:
+                                    # Button up
+                                    controller.buttons.button_released(event.code, prefix=prefix)
+                except Exception as e:
+                    self.stop(e)
+
+        def stop(self, exception=None):
+
+            for discovery in discoveries:
+                discovery.controller.device_unique_name = None
+                discovery.controller.exception = exception
+
+            self.running = False
+
+    polling_thread = SelectThread()
+
+    # Force an update of the LED and battery system cache
+    sys.scan_cache(force_update=True)
+
+    for device in polling_thread.all_devices:
+        device.grab()
+
+    def unbind():
+        polling_thread.stop()
+        for dev in polling_thread.all_devices:
+            try:
+                dev.ungrab()
+            except IOError:
+                pass
+
+    polling_thread.start()
+
+    return unbind
+</code></pre>",python|python-2.7,56382809,"<p><strong>Minimal Reproducable Example</strong></p>
+
+<p>The following is a <a href=""https://stackoverflow.com/help/minimal-reproducible-example"">Minimal Reproducable Example</a> of the issue in the question:</p>
+
+<pre class=""lang-py prettyprint-override""><code>class ControllerResource:
+
+    def __init__(self, *requirements, print_events=True, **kwargs):
+        pass
+</code></pre>
+
+<p>With Python 3.x this compiles just fine (i.e. you can import it without errors)., but with Python 2.x this raises a SyntaxError:</p>
+
+<pre class=""lang-none prettyprint-override""><code>  File ""test.py"", line 3
+    def __init__(self, *requirements, print_events=True, **kwargs):
+                                                 ^
+SyntaxError: invalid syntax
+</code></pre>
+
+<p><strong>Explanation</strong></p>
+
+<p>The reason is that the argument list contains a regular (keyword) argument (i.e. <code>print_events=True</code>) after a varargs argument (i.e. <code>*requirements</code>).</p>
+
+<p>In Python 3.x this is valid, and it would make the argument <code>print_events</code> a keyword-only argument (See <a href=""https://www.python.org/dev/peps/pep-3102/"" rel=""nofollow noreferrer"">PEP 3102</a> for more information and examples). Python 2.x does not support keyword-only arguments and thus the above code is not valid in Python 2.x.</p>
+
+<p><strong>Solution</strong></p>
+
+<p>First of all, I would highly recommend to use Python 3.x when possible, since Python 2.x is very old and it's not being maintained anymore after <a href=""https://pythonclock.org/"" rel=""nofollow noreferrer"">January 1, 2020</a>.</p>
+
+<p>However, if you really <em>must</em> use Python 2.x for whatever reasons, you could reorder the arguments for the <code>__init__</code> method as follows:</p>
+
+<pre class=""lang-py prettyprint-override""><code>class ControllerResource:
+
+    def __init__(self, print_events=True, *requirements, **kwargs):
+        pass
+</code></pre>"
+31444923,Save binary data get from url into Django FileField,"<p>Is there any ways to save a binary data get from an external url (in my case, an excel file) into a Django FileField, with the file uploaded to the destination according to the django project settings?</p>
+
+<pre><code>class FileData(models.Model):
+    excel_file = models.FileField(upload_to='excel_file_path')
+
+
+import requests
+url = 'https://www.example.getfile.com/file_id=234'
+r = requests.get(url)
+# How to store the binary data response to FileField?
+</code></pre>
+
+<p>Thanks for help. Please also let me know if further information is needed in my case.</p>",python|django|python-2.7|django-1.7,31445089,"<p>You can make use of <a href=""https://docs.djangoproject.com/en/1.8/ref/forms/api/#binding-uploaded-files-to-a-form"" rel=""nofollow""><code>django.core.files.uploadedfile.SimpleUploadedFile</code></a> to save your content as a file field of your model instance.</p>
+
+<pre><code>&gt;&gt;&gt; import requests
+&gt;&gt;&gt; from django.core.files.uploadedfile import SimpleUploadedFile
+
+&gt;&gt;&gt; response = requests.get(""https://www.example.getfile.com/file_id=234"")
+
+&gt;&gt;&gt; excel_file = SimpleUploadedFile(""excel.xls"", response.content, content_type=""application/vnd.ms-excel"")
+&gt;&gt;&gt; file_data = FileData(excel_file=excel_file)
+&gt;&gt;&gt; file_data.save()
+</code></pre>"
+31235152,Problems using Scrapy to scrape craigslist.org,"<p>I'm using the following set-up to scrape the prices from <code>http://puertorico.craigslist.org/search/sya</code></p>
+
+<pre><code>def parse(self, response):
+        items = Selector(response).xpath(""//p[@class='row']"")
+        for items in items:
+            item = StackItem()
+            item['prices'] = items.xpath(""//a[@class='i']/span[@class='price']/text()"").extract()
+            item['url'] = items.xpath(""//span[@class='href']/@href"").extract()
+
+
+            yield item
+</code></pre>
+
+<p>My problem is that when I run the script, ALL of the prices are shown for each item.. How can I get only the price of the particular item with its url for each available item?</p>",python-2.7|scrapy,31235401,"<p>You can try using a realtive <code>xpath</code> expression based in the context of the previous one, traversing all nodes until the one you want. Also, use a different variable in the <code>for</code> loop, like:</p>
+
+<pre><code>import scrapy
+from craiglist.items import StackItem
+
+class CraiglistSpider(scrapy.Spider):
+    name = ""craiglist_spider""
+    allowed_domains = [""puertorico.craigslist.org""]
+    start_urls = (
+        'http://puertorico.craigslist.org/search/sya',
+    )
+
+    def parse(self, response):
+        items = response.selector.xpath(""//p[@class='row']"")
+        for i in items:
+            item = StackItem()
+            item['prices'] = i.xpath(""./a/span[@class='price']/text()"").extract()
+            item['url'] = i.xpath(""./span[@class='txt']/span[@class='pl']/a/@href"").extract()
+
+
+            yield item
+</code></pre>
+
+<p>It yields:</p>
+
+<pre><code>{'prices': [u'$130'], 'url': [u'/sys/5105448465.html']}
+2015-07-05 23:58:22 [scrapy] DEBUG: Scraped from &lt;200 http://puertorico.craigslist.org/search/sya&gt;
+{'prices': [u'$250'], 'url': [u'/sys/5096083890.html']}
+2015-07-05 23:58:22 [scrapy] DEBUG: Scraped from &lt;200 http://puertorico.craigslist.org/search/sya&gt;
+{'prices': [u'$100'], 'url': [u'/sys/5069848699.html']}
+2015-07-05 23:58:22 [scrapy] DEBUG: Scraped from &lt;200 http://puertorico.craigslist.org/search/sya&gt;
+{'prices': [u'$35'], 'url': [u'/syd/5007870110.html']}
+...
+</code></pre>"
+31491211,Implement sub millisecond processing in python without busywait,"<p>How would i implement processing of an array with millisecond precision using python under linux (running on a single core Raspberry Pi).</p>
+
+<p>I am trying to parse information from a MIDI file, which has been preprocessed to an array where each millisecond i check if the array has entries at the current timestamp and trigger some functions if it does.</p>
+
+<p>Currently i am using time.time() and employ busy waiting (as concluded <a href=""https://raspberrypi.stackexchange.com/questions/3898/nanosleep-wont-sleep-short-time"">here</a>). This eats up all the CPU, therefor i opt for a better solution.</p>
+
+<pre><code># iterate through all milliseconds
+for current_ms in xrange(0, last+1):
+  start = time()
+
+  # check if events are to be processed
+  try:
+    events = allEvents[current_ms]
+    # iterate over all events for this millisecond
+    for event in events:
+      # check if event contains note information
+      if 'note' in event:
+        # check if mapping to pin exists
+        if event['note'] in mapping:
+          pin = mapping[event['note']]
+          # check if event contains on/off information
+          if 'mode' in event:
+            if event['mode'] == 0:
+              pin_off(pin)
+            elif event['mode'] == 1:
+              pin_on(pin)
+            else:
+              debug(""unknown mode in event:""+event)
+          else:
+            debug(""no mapping for note:"" + event['note'])
+  except:
+    pass
+
+  end = time()
+
+  # fill the rest of the millisecond
+  while (end-start) &lt; (1.0/(1000.0)):
+    end = time()
+</code></pre>
+
+<p>where <code>last</code> is the millisecond of the last event (known from preprocessing)</p>
+
+<p>This is not a question about <a href=""https://stackoverflow.com/q/85451/875020"">time() vs clock()</a> more about <a href=""https://stackoverflow.com/q/1107593/875020"">sleep vs busy wait</a>.</p>
+
+<p>I cant really sleep in the ""fill rest of millisecond"" loop, because of the <a href=""https://stackoverflow.com/questions/17499837/python-time-sleep-vs-busy-wait-accuracy"">too low</a> <a href=""https://stackoverflow.com/a/1133888/875020"">accuracy of sleep()</a>. If i were to use <a href=""https://stackoverflow.com/a/1212070/875020"">ctypes</a>, how would i go about it correctly?</p>
+
+<p>Is there some Timer library which would call a callback each millisecond reliably?</p>
+
+<p>My current implementation is on <a href=""https://github.com/x29a/ceremony/blob/15444d38f99732b7d3cb9d2b41a78b66718b9916/player/player.py#L114"" rel=""nofollow noreferrer"">GitHub</a>. With this approach i get a skew of around 4 or 5ms on the drum_sample, which is 3.7s total (with mock, so no real hardware attached). On a 30.7s sample, the skew is around 32ms (so its at least not linear!).</p>
+
+<p>I have tried using <a href=""http://benjiyork.com/blog/2007/04/sleep-considered-harmful.html"" rel=""nofollow noreferrer"">time.sleep()</a> and <a href=""https://github.com/graycatlabs/PyBBIO/blob/master/tests/sleep_test.py"" rel=""nofollow noreferrer"">nanosleep() via ctypes</a> with the following code</p>
+
+<pre><code>import time
+import timeit
+import ctypes
+libc = ctypes.CDLL('libc.so.6')
+
+class Timespec(ctypes.Structure):
+  """""" timespec struct for nanosleep, see:
+      http://linux.die.net/man/2/nanosleep """"""
+  _fields_ = [('tv_sec', ctypes.c_long),
+              ('tv_nsec', ctypes.c_long)]
+
+libc.nanosleep.argtypes = [ctypes.POINTER(Timespec),
+                           ctypes.POINTER(Timespec)]
+nanosleep_req = Timespec()
+nanosleep_rem = Timespec()
+
+def nsleep(us):
+  #print('nsleep: {0:.9f}'.format(us)) 
+  """""" Delay microseconds with libc nanosleep() using ctypes. """"""
+  if (us &gt;= 1000000):
+    sec = us/1000000
+    us %= 1000000
+  else: sec = 0
+  nanosleep_req.tv_sec = sec
+  nanosleep_req.tv_nsec = int(us * 1000)
+
+  libc.nanosleep(nanosleep_req, nanosleep_rem)
+
+LOOPS = 10000
+
+def do_sleep(min_sleep):
+  #print('try: {0:.9f}'.format(min_sleep))
+  total = 0.0
+  for i in xrange(0, LOOPS):
+    start = timeit.default_timer()
+    nsleep(min_sleep*1000*1000)
+    #time.sleep(min_sleep)
+    end = timeit.default_timer()
+    total += end - start
+  return (total / LOOPS)
+
+iterations = 5
+iteration = 1
+min_sleep = 0.001
+result = None
+while True:
+    result = do_sleep(min_sleep)
+    #print('res: {0:.9f}'.format(result))
+    if result &gt; 1.5 * min_sleep:
+      if iteration &gt; iterations:
+        break
+      else:
+        min_sleep = result
+        iteration += 1
+    else:
+      min_sleep /= 2.0
+
+print('FIN: {0:.9f}'.format(result))
+</code></pre>
+
+<p>The result on my i5 is </p>
+
+<blockquote>
+  <p>FIN: 0.000165443</p>
+</blockquote>
+
+<p>while on the RPi it is</p>
+
+<blockquote>
+  <p>FIN: 0.000578617</p>
+</blockquote>
+
+<p>which suggest a sleep period of about 0.1 or 0.5 milliseconds, with the given jitter (tend to sleep longer) that at most helps me reduce the load a little bit.</p>",python|linux|python-2.7|raspberry-pi|midi,31491393,"<p>One possible solution, using the <a href=""https://docs.python.org/2/library/sched.html"" rel=""nofollow"">sched</a> module:</p>
+
+<pre><code>import sched
+import time
+
+def f(t0):
+    print 'Time elapsed since t0:', time.time() - t0
+s = sched.scheduler(time.time, time.sleep)
+
+for i in range(10):
+    s.enterabs(t0 + 10 + i, 0, f, (t0,))
+s.run()
+</code></pre>
+
+<p>Result:</p>
+
+<pre><code>Time elapsed since t0: 10.0058200359
+Time elapsed since t0: 11.0022959709
+Time elapsed since t0: 12.0017120838
+Time elapsed since t0: 13.0022599697
+Time elapsed since t0: 14.0022521019
+Time elapsed since t0: 15.0015859604
+Time elapsed since t0: 16.0023040771
+Time elapsed since t0: 17.0023028851
+Time elapsed since t0: 18.0023078918
+Time elapsed since t0: 19.002286911
+</code></pre>
+
+<p>Apart from some constant offset of about 2 millisecond (which you could calibrate), the jitter seems to be on the order of 1 or 2 millisecond (as reported by <code>time.time</code> itself). Not sure if that is good enough for your application.</p>
+
+<p>If you need to do some useful work in the meantime, you should look into multi-threading or multi-processing.</p>
+
+<p><strong>Note</strong>: a standard Linux distribution that runs on a RPi is not a hard real-time operating system. Also Python can show non-deterministic timing, e.g. when it starts a garbage collection. So your code might run fine with low jitter <em>most of the time</em>, but you might have occasional 'hickups', where there is a bit of delay.</p>"
+47332937,Why dict not being updated in python multiprocessing?,"<p>Please check below code.</p>
+
+<p>I initialized a dict and send it to a function f. I checked the address of return_dict. It is not changing inside the process. So I thought the dict should be updated</p>
+
+<p><strong>But it is not updated, so why?</strong></p>
+
+<pre><code>from multiprocessing import Process
+
+return_dict = dict({})
+print id(return_dict)
+
+
+def f(value, return_dict):
+    return_dict['value'] = value
+    print return_dict
+
+
+p = Process(target=f, args=(100, return_dict))
+p.start()
+p.join()
+print return_dict
+</code></pre>",python|python-2.7|multiprocessing,47333096,"<p>Your <code>Process()</code> creates another process. It inherits objects as they are from your parent process when the child process is spawned, but modifications to these objects only modify the objects in child process memory and none of these changes are visible to parent.  </p>
+
+<p>You can overcome this by using <code>Manager()</code>:</p>
+
+<pre><code>from multiprocessing import Process, Manager
+
+def f(value, return_dict):
+    return_dict['value'] = value
+    print return_dict
+
+d = Manager().dict()    
+p = Process(target=f, args=(100, d))
+p.start()
+p.join()
+print d
+</code></pre>"
+48908416,Getting no module named _internals error while using Bloomberg API,"<p>I am currently using Python 2.7 and my OS is Windows 7. While attempting to use the Bloomberg API I am getting this error:</p>
+
+<pre><code>Traceback (most recent call last):
+   File ""datagrab.py"", line 1, in &lt;module&gt;
+     import blpapi, time, json
+   File ""C:\Python27\lib\blpapi\__init__.py"", line 5, in &lt;module&gt;
+     from .internals import CorrelationId
+   File ""C:\Python27\lib\blpapi\internals.py"", line 50, in &lt;module&gt;
+     _internals = swig_import_helper()
+   File ""C:\Python27\lib\blpapi\internals.py"", line 42, in swig_import_helper
+     import _internals
+   ImportError: No module named _internals
+</code></pre>
+
+<p>I have set my path variable to point to blpapi3_64.dll and also updated my bloomberg terminal. I have also moved the local blpapi API to a different directory but still the problem exists.</p>
+
+<p>I am kind of new to this API in general. So can someone please guide me?</p>
+
+<p>Thank you in advance! </p>",python-2.7|bloomberg|blpapi,52880920,"<p>I know this question is a bit stale, but in case people end up here like me. Do you have the C++ version of blpapi? it is a requirement for the python api as mentioned here: <a href=""https://www.bloomberg.com/professional/support/api-library/"" rel=""nofollow noreferrer"">https://www.bloomberg.com/professional/support/api-library/</a></p>
+
+<p>so download the C++ zip installer, extract somewhere, and then add it as an environment variable so that the python api can find it:</p>
+
+<p>Environment variable name: BLPAPI_ROOT
+Value: C:\blp\blpapi_cpp_3.8.18.1 (THIS IS WHERE MINE IS INSTALLED, YOUR VALUE HERE MAY BE DIFFERENT)</p>
+
+<p>Hope that helps!</p>"
+48908416,Getting no module named _internals error while using Bloomberg API,"<p>I am currently using Python 2.7 and my OS is Windows 7. While attempting to use the Bloomberg API I am getting this error:</p>
+
+<pre><code>Traceback (most recent call last):
+   File ""datagrab.py"", line 1, in &lt;module&gt;
+     import blpapi, time, json
+   File ""C:\Python27\lib\blpapi\__init__.py"", line 5, in &lt;module&gt;
+     from .internals import CorrelationId
+   File ""C:\Python27\lib\blpapi\internals.py"", line 50, in &lt;module&gt;
+     _internals = swig_import_helper()
+   File ""C:\Python27\lib\blpapi\internals.py"", line 42, in swig_import_helper
+     import _internals
+   ImportError: No module named _internals
+</code></pre>
+
+<p>I have set my path variable to point to blpapi3_64.dll and also updated my bloomberg terminal. I have also moved the local blpapi API to a different directory but still the problem exists.</p>
+
+<p>I am kind of new to this API in general. So can someone please guide me?</p>
+
+<p>Thank you in advance! </p>",python-2.7|bloomberg|blpapi,48949079,"<p>From your question is sounds like maybe you have tried this, but just outlining one possible solution from the <code>README</code> in the <code>Python Supported Release</code> release available <a href=""https://www.bloomberg.com/professional/support/api-library/"" rel=""nofollow noreferrer"">here</a>.</p>
+
+<blockquote>
+  <p>Note that many Python installations add the current directory to the
+  module search path. If the Python interpreter is invoked from the
+  installer directory, such a configuration will attempt to use the
+  (incomplete) local <code>blpapi</code> directory as a module. If the above
+  <code>import</code> line fails with the message <code>Import Error: No module named
+  _internals</code>, move to a different directory before invoking <code>python</code>.</p>
+</blockquote>"
+43089407,Why python configParser.read can only use filename as parameter to read config file,"<p>My python package directory structure shown as below:</p>
+
+<pre><code>./my_package
+|---./lib
+|   |----__init__.py
+|   |----tools.py
+|
+|----__init__.py
+|----my_package.py
+|----setting.conf
+</code></pre>
+
+<p><br>
+In the tools.py :</p>
+
+<pre><code>import ConfigParser
+
+config = ConfigParser.RawConfigParser()
+config.read('setting.conf')
+debug = config.getboolean('default', 'debug')
+</code></pre>
+
+<p>I don't know why config.read is work. I can get debug value in section default.</p>",python-2.7|configparser,43092803,"<p>Your test works because the configuration file is in the current directory, because you're running your main module from the directory of the configuration file.</p>
+
+<p>But if you're using another main file located somewhere else, that could fail.</p>
+
+<p>Here's a clean way to make it work in any case: since your tool is one level below the configuration file, the path to the configuration file can be computed as follows from the <code>tools.py</code> module:</p>
+
+<pre><code>conf_file = os.path.join(os.path.dirname(os.path.dirname(__file__)),'setting.conf')
+</code></pre>
+
+<p><code>os.path.dirname(__file__)</code> yields the directory where <code>tools.py</code> is located. Perform one more <code>dirname</code> to get the directory where the conf file is located. Now compute absolute name of config file using <code>os.path.join</code></p>"
+40671524,Gradient Descent in Python 2,"<p>Part of my assignment is to implement the Gradient Descent to find the best approximation of values c_1, c_2 and r_1 for the function
+<a href=""https://i.stack.imgur.com/Czueu.gif"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/Czueu.gif"" alt=""enter image description here""></a> .</p>
+
+<p>Given is only a list of 30 y-values corresponding to x from 0 to 30. I am implementing this in Enthought Canopy like this:</p>
+
+<p>First I start with random values:</p>
+
+<pre><code>%matplotlib inline
+import numpy as np
+import matplotlib.pyplot as pyplt
+c1 = -0.1
+c2 = 0.1
+r1 = 0.1
+x = np.linspace(0,29,30) #start,stop,numitems
+y = c1*np.exp(r1*x) + (c1*x)**3.0 - (c2*x)**2.0
+pyplt.plot(x,y)
+
+values_x = np.linspace(0,29,30)
+values_y = np.array([0.2, -0.142682939241718, -0.886680607211679, -2.0095087143494, -3.47583798747496, -5.24396052331554, -7.2690008846359, -9.50451068338581, -11.9032604272567, -14.4176327390446, -16.9998176236069, -19.6019094345634, -22.1759550265352, -24.6739776668383, -27.0479889096801, -29.2499944927101, -31.2319972651608, -32.945998641919, -34.3439993255969, -35.3779996651013, -35.9999998336943, -36.161999917415, -35.8159999589895, -34.9139999796348, -33.4079999898869, -31.249999994978, -28.3919999975061, -24.7859999987616, -20.383999999385, -15.1379999996945])
+pyplt.plot(values_x,values_y)
+</code></pre>
+
+<p>The squared error is quite high:</p>
+
+<pre><code>def Error(y,y0):
+    return ( (1.0)*sum((y-y0)**2.0) )
+print Error(y,values_y)
+</code></pre>
+
+<p>Now, to implement the gradient descent, I derived the partial derivative functions for c_1, c_2 and r_1 and implemented the Gradient Descent:</p>
+
+<pre><code>step_size = 0.0000005
+accepted_Error = 50
+dc1 = c1
+dc2 = c2
+dr1 = r1
+y0 = values_y
+previous_Error = 100000
+left = True
+
+for _ in range(1000):
+    gc1 = (2.0) * sum( ( y - dc1*np.exp(dr1*x) - (dc1*x)**3 + (dc2*x)**2 ) * ( -1*np.exp(dr1*x) - (3*(dc1**2)*(x**3)) ) )
+    gc2 = (2.0) * sum( ( y - dc1*np.exp(dr1*x) - (dc1*x)**3 + (dc2*x)**2 ) * ( 2*dc2*(x**2) ) )
+    gr1 = (2.0) * sum( ( y - dc1*np.exp(dr1*x) - (dc1*x)**3 + (dc2*x)**2 ) * ( -1*dc1*x*np.exp(dr1*x) ) )
+
+    dc1 = dc1 - step_size*gc1
+    dc2 = dc2 - step_size*gc2
+    dr1 = dr1 - step_size*gr1
+
+    y1 = dc1*np.exp(dr1*x) + (dc1*x)**3.0 - (dc2*x)**2.0
+    current_Error = Error(y0,y1)
+
+    if (current_Error &gt; accepted_Error):
+        print currentError
+    else: 
+        break
+    if (current_Error &gt; previous_Error):
+        print currentError
+        print ""DIVERGING""
+        break
+    if (current_Error==previous_Error):
+        print ""CAN'T IMPROVE""
+        break
+
+    previous_Error = current_Error
+</code></pre>
+
+<p>However, the error is not improving at all, and I tried to vary the step size. Is there a mistake in my code?</p>",python-2.7|optimization|gradient-descent,,
+12402239,"python pyparsing string: A,b,b,b,A,b,b,b*","<p>I have a crazy problem.</p>
+
+<p>I am trying to use pyparsing to parse something like this: (dots are unimportant suppressed text)</p>
+
+<pre><code>...... A
+B .......
+B .......
+...... A
+B .......
+B .......
+</code></pre>
+
+<p>What I need is something like this: (to connect A and B element into one list)</p>
+
+<pre><code> [ [ [A],[B,B] ], [ [A],[B,B] ] , ...]
+</code></pre>
+
+<p>This is my code which does not work and only returns the first [A]</p>
+
+<pre><code>table = pyparsing.OneOrMore(pyparsing.Group(A + (pyparsing.OneOrMore(pyparsing.Group(B) | pyparsing.SkipTo(B).suppress()))) | pyparsing.SkipTo(A).suppress())
+</code></pre>
+
+<p>I have already solved this pyparsing into a list like this:</p>
+
+<pre><code>[ [A],[B],[B], [A],[B],[B] , ...]
+</code></pre>
+
+<p>But this was not acceptable, since the A and B elements were not directly connected in one list.</p>
+
+<p>Worth mentioning is that </p>
+
+<pre><code>table1 = pyparsing.ZeroOrMore(pyparsing.Group(A) | pyparsing.SkipTo(A).suppress())
+table2 = pyparsing.ZeroOrMore(pyparsing.Group(B) | pyparsing.SkipTo(B).suppress())
+</code></pre>
+
+<p>works and return a list of all A elements and B elements.</p>",python|python-2.7|pyparsing,12402389,"<p>I think you have two options:</p>
+
+<ul>
+<li>rethink the way you're parsing the text</li>
+<li><p>stay happy with what you have and just clean things afterwards:
+You have a list like <code>your_list=[A,B,B,A,B,B]</code> ? You can just do </p>
+
+<pre><code>[ [x[i], x[i+1] + x[i+2]] for i in range(len(your_list)//3)]
+</code></pre>
+
+<p>the <code>+</code> will concatenate your two <code>[B]</code> lists (represented as <code>x[i+1]</code> and <code>x[i+2]</code>).</p></li>
+</ul>"
+12402239,"python pyparsing string: A,b,b,b,A,b,b,b*","<p>I have a crazy problem.</p>
+
+<p>I am trying to use pyparsing to parse something like this: (dots are unimportant suppressed text)</p>
+
+<pre><code>...... A
+B .......
+B .......
+...... A
+B .......
+B .......
+</code></pre>
+
+<p>What I need is something like this: (to connect A and B element into one list)</p>
+
+<pre><code> [ [ [A],[B,B] ], [ [A],[B,B] ] , ...]
+</code></pre>
+
+<p>This is my code which does not work and only returns the first [A]</p>
+
+<pre><code>table = pyparsing.OneOrMore(pyparsing.Group(A + (pyparsing.OneOrMore(pyparsing.Group(B) | pyparsing.SkipTo(B).suppress()))) | pyparsing.SkipTo(A).suppress())
+</code></pre>
+
+<p>I have already solved this pyparsing into a list like this:</p>
+
+<pre><code>[ [A],[B],[B], [A],[B],[B] , ...]
+</code></pre>
+
+<p>But this was not acceptable, since the A and B elements were not directly connected in one list.</p>
+
+<p>Worth mentioning is that </p>
+
+<pre><code>table1 = pyparsing.ZeroOrMore(pyparsing.Group(A) | pyparsing.SkipTo(A).suppress())
+table2 = pyparsing.ZeroOrMore(pyparsing.Group(B) | pyparsing.SkipTo(B).suppress())
+</code></pre>
+
+<p>works and return a list of all A elements and B elements.</p>",python|python-2.7|pyparsing,12407027,"<p>Yes, you can have OneOrMore's embedded within other OneOrMore's - it would severely limit the parsers you could write if you couldn't.</p>
+
+<p>I think you might be able to adapt your existing solution if you do better grouping.  See how the Groups are defined in this toy example:</p>
+
+<pre><code>test = """"""
+...... A 
+B ....... 
+B ....... 
+...... A 
+B ....... 
+B .......""""""
+
+from pyparsing import Literal, Word, printables, Group, OneOrMore
+
+A = Literal(""A"")
+B = Literal(""B"")
+
+notAorB = Word(printables, excludeChars=""AB"")
+
+parser = OneOrMore(Group(A + Group(OneOrMore(B))))
+parser.ignore(notAorB)
+
+print parser.parseString(test).asList()
+</code></pre>
+
+<p>Prints:</p>
+
+<pre><code>[['A', ['B', 'B']], ['A', ['B', 'B']]]
+</code></pre>"
+39720919,"TypeError: initial_value must be unicode or None, not str,","<p>I am using SOAPpy for soap wsdl services. I am following this <a href=""http://www.diveintopython.net/soap_web_services/introspection.html"" rel=""noreferrer"">toturail</a>. My code is as follow </p>
+
+<pre><code>from SOAPpy import WSDL
+wsdlfile = 'http://track.tcs.com.pk/trackingaccount/track.asmx?WSDL'
+server = WSDL.Proxy(wsdlfile)
+</code></pre>
+
+<p>I am getting this error on the last line of my code</p>
+
+<pre><code>Traceback (most recent call last):
+File ""&lt;console&gt;"", line 1, in &lt;module&gt;
+File ""/home/adil/Code/mezino/RoyalTag/royalenv/local/lib/python2.7/site-packages/SOAPpy/WSDL.py"", line 85, in __init__
+self.wsdl = reader.loadFromString(str(wsdlsource))
+File ""/home/adil/Code/mezino/RoyalTag/royalenv/local/lib/python2.7/site-packages/wstools/WSDLTools.py"", line 52, in loadFromString
+return self.loadFromStream(StringIO(data))
+TypeError: initial_value must be unicode or None, not str
+</code></pre>
+
+<p>I tried to convert the string into utf using </p>
+
+<pre><code>wsdlFile = unicode('http://track.tcs.com.pk/trackingaccount/track.asmx?WSDL, ""utf-8"")
+</code></pre>
+
+<p>but still having same error. What is missing here ?</p>",python|python-2.7|soap|unicode|soappy,53782976,"<p>I just ran into this problem with some very old 2.7 code that no longer worked due to the TLS update. After updating to the most recent version of Python 2 I ended up getting this issue.</p>
+
+<p>I was only able to fix this by setting up a new virtual environment, then modifying the wstools package in that virtual environment to use BytesIO instead of StringIO.</p>
+
+<p>Replace every required instance of StringIO. For example:</p>
+
+<pre><code># WSDLTools.py
+...
+from IO import BytesIO
+...
+return self.loadFromStream(BytesIO(data))
+</code></pre>
+
+<p>Not ideal, but it worked. Easier than migrating everything to Python 3...</p>"
+39686764,"Unable to open D drive files, of File type, in Python","<p>I am unable to open a ""File"" type file in python.
+This file exists in D drive.</p>
+
+<pre><code>f = os.path.join('D:\Udacity Datasets', 'maildir/bailey-s/deleted_items/101')
+g=open(f) 
+Traceback (most recent call last):
+File ""&lt;stdin&gt;"", line 1, in &lt;module&gt;
+IOError: [Errno 2] No such file or directory: 'D:\\Udacity Datasets\\maildir/bailey-s/deleted_items/101'
+</code></pre>
+
+<p>However, if the same file is in C drive, it works fine</p>
+
+<pre><code>f = os.path.join('C:\Users\shivanand\Documents\Udacity\Data Analyst  Nanodegree\P5 - Intro to ML\ud120-projects-master', 'maildir/bailey-s/deleted_items/101' )
+g = open(f)
+</code></pre>
+
+<p>I have also observed that 'txt' files can be read from D drives, 
+i.e </p>
+
+<pre><code>f = os.path.join('D:\Udacity Datasets', 'maildir/bailey-s/test.txt')
+g = open(f)
+</code></pre>
+
+<p>works well, but throws an error for 'File' type files.</p>
+
+<p>Could someone kindly point out the error</p>",python-2.7,39686862,"<p>f = os.path.join('D:\Udacity Datasets', <strong>'maildir/bailey-s/deleted_items/101'</strong>)</p>
+
+<p>You have wrong slash in highlighted part. It should be <strong>'maildir\bailey-s\deleted_items\101'</strong></p>"
+22459987,Simple command line chat with python,"<p>I want to implement a simple console chat in python. 
+I've already write two scripts, one server, one client and I am possible to write messages from the client to the server script over a udp socket. It's possible to open a server and a client console, so that you can read in the first and write in the second console. The next step is to write a chat, that every user can start and then you can read and write in the same console. </p>
+
+<p>In the following there is my try with the help of threads. But it didn't work and I need a little bit help with the implementation. I would be very thanksful for a few tipps for a python beginner. </p>
+
+<p>Thanks in advance!</p>
+
+<pre><code>import socket, time, datetime, threading
+
+target_ip = raw_input(""Empf-IP: "")
+port = 48899
+
+udp_socket = socket.socket( socket.AF_INET,  socket.SOCK_DGRAM )
+
+def SendThread(threading):
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
+        while True:
+            message = raw_input(""&gt; "")
+            udp_socket.sendto(message, (target_ip,port))
+
+def ReceiveThread(threading):
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
+        while True:
+            data, addr = udp_socket.recvfrom(1024)
+            print data
+my_threads = []
+
+send_thread = SendThread()
+recv_thread = ReceiveThread()
+
+my_threads.append(send_thread)
+my_threads.append(recv_thread)  
+
+for thread in my_threads:
+    thread.start()
+
+for thread in my_threads:
+    thread.join()
+</code></pre>",python|python-2.7|console|chat,,
+20024936,"The ""lives"" in my game won't appear? pygame","<p>So, in my memory game, I got that when you click a wrong button, you lose a life. And this works! After losing 3 lives, you lose. But the problem here is that the text for the lives won't appear in my game once it starts up. Could anyone help me out? (If you're interested in seeing the entire code, then you could look at it here <a href=""http://pastebin.com/rkBGC2rD"" rel=""nofollow"">http://pastebin.com/rkBGC2rD</a>)</p>
+
+<pre><code>def main():
+    global FPSCLOCK, DISPLAYSURF, BASICFONT, BEEP1, BEEP2, BEEP3, BEEP4
+
+    pygame.init()
+    FPSCLOCK = pygame.time.Clock()
+    DISPLAYSURF = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption('Simulate')
+
+    # font 
+    BASICFONT = pygame.font.Font(None, 30)
+
+    # load the sound files
+    BEEP1 = pygame.mixer.Sound('beep1.wav')
+    BEEP2 = pygame.mixer.Sound('beep2.wav')
+    BEEP3 = pygame.mixer.Sound('beep3.wav')
+    BEEP4 = pygame.mixer.Sound('beep4.wav')
+    SOUNDTRACK = pygame.mixer.Sound('soundtrack.wav')
+    ERROR = pygame.mixer.Sound('error.wav')
+
+    # initialize some variables for a new game
+    pattern = [] # stores the pattern of colors
+    currentStep = 0 # the color the player must push next
+    lastClickTime = 0 # ""time stamp"" of the player's last button push
+    score = 0
+
+    # plays the soundtrack music 
+    SOUNDTRACK.play(-1, 0, 1000)
+
+    # start-up screen text
+    text = BASICFONT.render('Press enter to play!', 1, WHITE)
+    textRect = text.get_rect()
+    textRect.centerx = DISPLAYSURF.get_rect().centerx
+    textRect.y = 150
+    DISPLAYSURF.blit(text, textRect)
+
+    # update the screen
+    pygame.display.update()
+
+    # the start up screen command
+    waiting = True
+    while waiting:      
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    waiting = False
+
+    # amount of lives
+    lives = 3
+    img = BASICFONT.render('I'*lives, 1, WHITE)
+    livesRect = img.get_rect()
+    livesRect.topleft = (10, 10)
+    DISPLAYSURF.blit(img, livesRect)
+
+    # when False, the pattern is playing. when True, waiting for the player to click a colored button:
+    waitingForInput = False
+
+    while True: # main game loop
+        clickedButton = None # button that was clicked (set to YELLOW, RED, GREEN, or BLUE)
+        DISPLAYSURF.fill(bgColor)
+        drawButtons()
+
+        scoreSurf = BASICFONT.render('Score: ' + str(score), 1, WHITE)
+        scoreRect = scoreSurf.get_rect()
+        scoreRect.topleft = (WIDTH - 100, 10)
+        DISPLAYSURF.blit(scoreSurf, scoreRect)      
+
+        checkForQuit()
+        for event in pygame.event.get(): # event handling loop
+            if event.type == MOUSEBUTTONUP:
+                mousex, mousey = event.pos
+                clickedButton = getButtonClicked(mousex, mousey)
+
+        if not waitingForInput:
+            # play the pattern
+            pygame.display.update()
+            pygame.time.wait(1000)
+            pattern.append(random.choice((YELLOW, BLUE, RED, GREEN)))
+            for button in pattern:
+                flashButtonAnimation(button)
+                pygame.time.wait(FLASHDELAY)
+            waitingForInput = True
+        else:
+            # wait for the player to enter buttons
+            if clickedButton and clickedButton == pattern[currentStep]:
+                # pushed the correct button
+                flashButtonAnimation(clickedButton)
+                currentStep += 1
+                lastClickTime = time.time()
+
+                if currentStep == len(pattern):
+                    # pushed the last button in the pattern
+                    score += 1
+                    waitingForInput = False
+                    currentStep = 0 # reset back to first step
+
+            elif (clickedButton and clickedButton != pattern[currentStep]) or (currentStep != 0 and time.time() - TIMEOUT &gt; lastClickTime):
+                # pushed the incorrect button, or has timed out
+                pattern = []
+                currentStep = 0
+                waitingForInput = False
+                lives = lives - 1
+                SOUNDTRACK.stop()
+                ERROR.play()
+                pygame.time.wait(1000)
+                SOUNDTRACK.play(-1, 0, 1000)
+                pygame.display.update()
+                if lives &lt; 1:               
+                    gameOverAnimation()
+                    # reset the variables for a new game:
+                    pattern = []
+                    currentStep = 0
+                    waitingForInput = False
+                    score = 0
+                    pygame.time.wait(1000)
+
+        pygame.display.update()
+        FPSCLOCK.tick(FPS) 
+</code></pre>",python|python-2.7|pygame,20025368,"<p>Every time you change <code>lives</code> you have to render again </p>
+
+<pre><code>img = BASICFONT.render('I'*lives, 1, WHITE)
+</code></pre>
+
+<p>and display it in every loop </p>
+
+<pre><code>DISPLAYSURF.blit(img, livesRect)
+</code></pre>"
+20024936,"The ""lives"" in my game won't appear? pygame","<p>So, in my memory game, I got that when you click a wrong button, you lose a life. And this works! After losing 3 lives, you lose. But the problem here is that the text for the lives won't appear in my game once it starts up. Could anyone help me out? (If you're interested in seeing the entire code, then you could look at it here <a href=""http://pastebin.com/rkBGC2rD"" rel=""nofollow"">http://pastebin.com/rkBGC2rD</a>)</p>
+
+<pre><code>def main():
+    global FPSCLOCK, DISPLAYSURF, BASICFONT, BEEP1, BEEP2, BEEP3, BEEP4
+
+    pygame.init()
+    FPSCLOCK = pygame.time.Clock()
+    DISPLAYSURF = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption('Simulate')
+
+    # font 
+    BASICFONT = pygame.font.Font(None, 30)
+
+    # load the sound files
+    BEEP1 = pygame.mixer.Sound('beep1.wav')
+    BEEP2 = pygame.mixer.Sound('beep2.wav')
+    BEEP3 = pygame.mixer.Sound('beep3.wav')
+    BEEP4 = pygame.mixer.Sound('beep4.wav')
+    SOUNDTRACK = pygame.mixer.Sound('soundtrack.wav')
+    ERROR = pygame.mixer.Sound('error.wav')
+
+    # initialize some variables for a new game
+    pattern = [] # stores the pattern of colors
+    currentStep = 0 # the color the player must push next
+    lastClickTime = 0 # ""time stamp"" of the player's last button push
+    score = 0
+
+    # plays the soundtrack music 
+    SOUNDTRACK.play(-1, 0, 1000)
+
+    # start-up screen text
+    text = BASICFONT.render('Press enter to play!', 1, WHITE)
+    textRect = text.get_rect()
+    textRect.centerx = DISPLAYSURF.get_rect().centerx
+    textRect.y = 150
+    DISPLAYSURF.blit(text, textRect)
+
+    # update the screen
+    pygame.display.update()
+
+    # the start up screen command
+    waiting = True
+    while waiting:      
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    waiting = False
+
+    # amount of lives
+    lives = 3
+    img = BASICFONT.render('I'*lives, 1, WHITE)
+    livesRect = img.get_rect()
+    livesRect.topleft = (10, 10)
+    DISPLAYSURF.blit(img, livesRect)
+
+    # when False, the pattern is playing. when True, waiting for the player to click a colored button:
+    waitingForInput = False
+
+    while True: # main game loop
+        clickedButton = None # button that was clicked (set to YELLOW, RED, GREEN, or BLUE)
+        DISPLAYSURF.fill(bgColor)
+        drawButtons()
+
+        scoreSurf = BASICFONT.render('Score: ' + str(score), 1, WHITE)
+        scoreRect = scoreSurf.get_rect()
+        scoreRect.topleft = (WIDTH - 100, 10)
+        DISPLAYSURF.blit(scoreSurf, scoreRect)      
+
+        checkForQuit()
+        for event in pygame.event.get(): # event handling loop
+            if event.type == MOUSEBUTTONUP:
+                mousex, mousey = event.pos
+                clickedButton = getButtonClicked(mousex, mousey)
+
+        if not waitingForInput:
+            # play the pattern
+            pygame.display.update()
+            pygame.time.wait(1000)
+            pattern.append(random.choice((YELLOW, BLUE, RED, GREEN)))
+            for button in pattern:
+                flashButtonAnimation(button)
+                pygame.time.wait(FLASHDELAY)
+            waitingForInput = True
+        else:
+            # wait for the player to enter buttons
+            if clickedButton and clickedButton == pattern[currentStep]:
+                # pushed the correct button
+                flashButtonAnimation(clickedButton)
+                currentStep += 1
+                lastClickTime = time.time()
+
+                if currentStep == len(pattern):
+                    # pushed the last button in the pattern
+                    score += 1
+                    waitingForInput = False
+                    currentStep = 0 # reset back to first step
+
+            elif (clickedButton and clickedButton != pattern[currentStep]) or (currentStep != 0 and time.time() - TIMEOUT &gt; lastClickTime):
+                # pushed the incorrect button, or has timed out
+                pattern = []
+                currentStep = 0
+                waitingForInput = False
+                lives = lives - 1
+                SOUNDTRACK.stop()
+                ERROR.play()
+                pygame.time.wait(1000)
+                SOUNDTRACK.play(-1, 0, 1000)
+                pygame.display.update()
+                if lives &lt; 1:               
+                    gameOverAnimation()
+                    # reset the variables for a new game:
+                    pattern = []
+                    currentStep = 0
+                    waitingForInput = False
+                    score = 0
+                    pygame.time.wait(1000)
+
+        pygame.display.update()
+        FPSCLOCK.tick(FPS) 
+</code></pre>",python|python-2.7|pygame,20025109,"<p>In the main loop, you fill over the entire background with <code>DISPLAYSURF.fill(bgColor)</code> but don't draw <code>livesRect</code> again.</p>"
+47066452,Global variable in python flask claims it is being referenced before usage in 1 of 5 functions using it,"<p>I get the following error when viewing my page on the browser.</p>
+
+<pre><code>File ""/home/jsnyder10/Documents/45/flask/lib/python2.7/site-packages/flask/app.py"", line 1997, in __call__
+    return self.wsgi_app(environ, start_response)
+File ""/home/jsnyder10/Documents/45/flask/lib/python2.7/site-packages/flask/app.py"", line 1985, in wsgi_app
+    response = self.handle_exception(e)
+File ""/home/jsnyder10/Documents/45/flask/lib/python2.7/site-packages/flask/app.py"", line 1540, in handle_exception
+    reraise(exc_type, exc_value, tb)
+File ""/home/jsnyder10/Documents/45/flask/lib/python2.7/site-packages/flask/app.py"", line 1982, in wsgi_app
+    response = self.full_dispatch_request()
+File ""/home/jsnyder10/Documents/45/flask/lib/python2.7/site-packages/flask/app.py"", line 1614, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+File ""/home/jsnyder10/Documents/45/flask/lib/python2.7/site-packages/flask/app.py"", line 1517, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+File ""/home/jsnyder10/Documents/45/flask/lib/python2.7/site-packages/flask/app.py"", line 1612, in full_dispatch_request
+    rv = self.dispatch_request()
+File ""/home/jsnyder10/Documents/45/flask/lib/python2.7/site-packages/flask/app.py"", line 1598, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+File ""/home/jsnyder10/Documents/45/flask/lib/python2.7/site-packages/flask_login/utils.py"", line 228, in decorated_view
+    return func(*args, **kwargs)
+File ""/home/jsnyder10/Documents/jMessage/app/views.py"", line 66, in admin_edit_groups
+    if not g.user.admin:
+UnboundLocalError: local variable 'g' referenced before assignment
+</code></pre>
+
+<p>Here is my python code using Flask for routing. The first function is the code I used in every single admin route that works perfectly, but for some reason the admin_edit_groups route throws this error.What am I missing?</p>
+
+<pre><code>from flask import render_template, flash, redirect, session, url_for, request, \
+    g, jsonify, send_from_directory
+
+@app.route('/admin', methods=['GET', 'POST'])
+@login_required
+def admin():
+    if not g.user.admin:
+        flash('Page unacessible.')
+        return redirect(url_for('index'))
+    return render_template('admin.html',title='Admin') 
+
+@app.route('/admin_edit_groups', methods=['GET', 'POST'])
+@login_required
+def admin_edit_groups():
+    if not g.user.admin:
+        flash('Page unacessible.')
+        return redirect(url_for('index'))
+    form = AddGroupForm()
+    if request.method == 'POST' and form.validate():
+        if not Group.query.filter_by(name=form.groupname.data).count()&gt;0:
+            g=Group(name=form.groupname.data)
+            db.session.add(g)
+            db.session.commit()
+            flash('Added Group name ' + form.groupname.data)
+        else:
+            flash('Group: ' + form.groupname.data + ' already exists.')
+    groups=Group.query.all()
+    return render_template('admin_edit_groups.html',title='Admin', form=form, groups=groups)
+</code></pre>",python|python-2.7|flask|jinja2|flash-message,47066475,"<p>You are using another <code>g</code> inside your function, this will overwrite global <code>g</code>.</p>
+
+<pre><code>if not Group.query.filter_by(name=form.groupname.data).count()&gt;0:
+    g=Group(name=form.groupname.data)  # Here it is, rename it.
+    db.session.add(g)
+    db.session.commit()
+</code></pre>"
+46943545,What is the scope of the Google App Engine api's namespace manager?,"<p>I'm building an API with Flask in Google App Engine Python Standard Environment that is served through multiple domains.</p>
+
+<p>The API can be used to store data and fetch data.</p>
+
+<p>I want to use cloud datastore's multitenancy to store or fetch data only in a namespace determined by the domain from which the API is accessed.</p>
+
+<p>The only way I can see to do this is to use <code>google.appengine.api.namespace_manager</code> to set the namespace either at request time or in a context manager at I/O time.</p>
+
+<p>I wrote this context manager:</p>
+
+<pre><code>@contextmanager
+def multitenancy_namespace(namespace):
+    original_namespace = namespace_manager.get_namespace()
+    if namespace:
+        new_namespace = to_namespace_safe_url(namespace)
+        namespace_manager.set_namespace(new_namespace)
+
+    yield
+
+    namespace_manager.set_namespace(original_namespace)
+</code></pre>
+
+<p>And it works as expected.</p>
+
+<p>My worry is the scope of <code>namespace_manager</code>. I have not been able to find any documentation about this.</p>
+
+<p>If my API is threaded and used simultaneously by >1000 users, assuming that the namespace as set by <code>namespace_manager.set_namespace(...)</code> is global, I would expect some collisions - data being stored in the wrong namespace because another request called <code>set_namespace</code> after the first request, but before the first request did its I/O.</p>
+
+<p>I wrote a threaded test <a href=""https://gist.github.com/Checkroth/5ff2cc9f47a62f78fe295c76dd14eab2"" rel=""nofollow noreferrer"">here</a> that passes, which tells me that the scope of <code>namespace</code> is at least confined to individual threads (which is good enough for my Flask application).</p>
+
+<p>But what <em>is</em> the context of <code>namespace_manager</code>? What does <code>set_namespace</code> actually do? Where is the namespace setting saved? Is there a use case where a namespace collision <em>could</em> happen?</p>",python|python-2.7|google-app-engine|google-cloud-datastore,46951236,"<p>If you look to the <a href=""https://github.com/optimizely/python-appengine/blob/master/google/appengine/api/namespace_manager/namespace_manager.py"" rel=""nofollow noreferrer"">source code</a> of <code>namespace_manager.set_namespace(...)</code> you'll see it does it by settings the namespace to an environment variable:</p>
+
+<pre><code>def set_namespace(namespace):
+  """"""Set the default namespace for the current HTTP request.
+  Args:
+    namespace: A string naming the new namespace to use. A value of None
+      will unset the default namespace value.
+  """"""
+  if namespace is None:
+    os.environ.pop(_ENV_CURRENT_NAMESPACE, None)
+  else:
+    validate_namespace(namespace)
+    os.environ[_ENV_CURRENT_NAMESPACE] = namespace
+</code></pre>
+
+<p>When a thread switches context the AppEngine backups &amp; restores the environment variables as needed. They are guaranteed to be request bounded so it is opaque to user's code. I don't remember if there is docs for this, I think I've learned this at some forum thread.</p>
+
+<p>The comment <code>Set the default namespace for the current HTTP request</code> is implicitly confirms this.</p>
+
+<p>We use it at <a href=""https://www.myclasses.org"" rel=""nofollow noreferrer"">www.myclasses.org</a> for few years and it's never been a problem.</p>
+
+<p>So relax, you are safe to use it in multi-threaded environment!</p>"
+39256072,Applying functools.wraps to nested wrappers,"<p>I have a base decorator that takes arguments but that also is built upon by other decorators. I can't seem to figure where to put the functools.wraps in order to preserve the full signature of the decorated function.</p>
+
+<pre><code>import inspect
+from functools import wraps
+
+# Base decorator
+def _process_arguments(func, *indices):
+    """""" Apply the pre-processing function to each selected parameter """"""
+    @wraps(func)
+    def wrap(f):
+        @wraps(f)
+        def wrapped_f(*args):
+            params = inspect.getargspec(f)[0]
+
+            args_out = list()
+            for ind, arg in enumerate(args):
+                if ind in indices:
+                    args_out.append(func(arg))
+                else:
+                    args_out.append(arg)
+
+            return f(*args_out)
+        return wrapped_f
+    return wrap
+
+
+# Function that will be used to process each parameter
+def double(x):
+    return x * 2
+
+# Decorator called by end user
+def double_selected(*args):
+    return _process_arguments(double, *args)
+
+# End-user's function
+@double_selected(2, 0)
+def say_hello(a1, a2, a3):
+    """""" doc string for say_hello """"""
+    print('{} {} {}'.format(a1, a2, a3))
+
+say_hello('say', 'hello', 'arguments')
+</code></pre>
+
+<p>The result of this code should be <em>and is</em>:</p>
+
+<pre><code>saysay hello argumentsarguments
+</code></pre>
+
+<p>However, running help on say_hello gives me:</p>
+
+<pre><code>say_hello(*args, **kwargs)
+    doc string for say_hello
+</code></pre>
+
+<p>Everything is preserved except the parameter names.</p>
+
+<p>It seems like I just need to add another @wraps() somewhere, but where?</p>",python|python-2.7|python-decorators|functools,39257170,"<p>I experimented with this: </p>
+
+<pre><code>&gt;&gt;&gt; from functools import wraps
+&gt;&gt;&gt; def x(): print(1)
+...
+&gt;&gt;&gt; @wraps(x)
+... def xyz(a,b,c): return x
+
+
+&gt;&gt;&gt; xyz.__name__
+'x'
+&gt;&gt;&gt; help(xyz)
+Help on function x in module __main__:
+
+x(a, b, c)
+</code></pre>
+
+<p>AFAIK, this has nothing to do with <code>wraps</code> itself, but an issue related to <code>help</code>. Indeed, because <code>help</code> inspects your objects to provide the information, including <code>__doc__</code> and other attributes, this is why you get this behavior, although your wrapped function has different argument list. Though, <code>wraps</code> doesn't update that automatically (the argument list) what it really updates is this tuple and the <code>__dict__</code> which is technically the objects namespace: </p>
+
+<pre><code>WRAPPER_ASSIGNMENTS = ('__module__', '__name__', '__qualname__', '__doc__',
+                       '__annotations__')
+WRAPPER_UPDATES = ('__dict__',)
+</code></pre>
+
+<p>If you aren't sure about how <code>wraps</code> work, probably it'll help if your read the the source code from the standard library: <code>functools.py</code>.</p>
+
+<blockquote>
+  <p>It seems like I just need to add another @wraps() somewhere, but where?</p>
+</blockquote>
+
+<p>No, you don't need to add another <code>wraps</code> in your code, <code>help</code> as I stated above works that way by inspecting your objects. The function's arguments  are associated with code objects (<code>__code__</code>) because your function's arguments are stored/represented in that object, <code>wraps</code> has no way to update the argument of the wrapper to be like the wrapped function (continuing with the above example): </p>
+
+<pre><code>&gt;&gt;&gt; xyz.__code__.co_varnames
+
+&gt;&gt;&gt; xyz.__code__.co_varnames = x.__code__.co_varnames
+AttributeError: readonly attribute
+</code></pre>
+
+<p>If <code>help</code> displayed that function <code>xyz</code> has this argument list <code>()</code> instead of <code>(a, b, c)</code> then this is clearly wrong! And the same applies for <code>wraps</code>, to change the  argument list of the wrapper to the wrapped, would be cumbersome! So this should not be a concern at all. </p>
+
+<pre><code>&gt;&gt;&gt; @wraps(x, (""__code__"",))
+... def xyz(a,b,c): pass
+...
+
+&gt;&gt;&gt; help(xyz)
+Help on function xyz in module __main__:
+
+xyz()
+</code></pre>
+
+<p>But <code>xyz()</code> returns <code>x()</code>: </p>
+
+<pre><code>&gt;&gt;&gt; xyz()
+1
+</code></pre>
+
+<p>For other references take a look at this question or the Python Documentation</p>
+
+<p><a href=""https://stackoverflow.com/questions/308999/what-does-functools-wraps-do"">What does functools.wraps do?</a></p>"
+39256072,Applying functools.wraps to nested wrappers,"<p>I have a base decorator that takes arguments but that also is built upon by other decorators. I can't seem to figure where to put the functools.wraps in order to preserve the full signature of the decorated function.</p>
+
+<pre><code>import inspect
+from functools import wraps
+
+# Base decorator
+def _process_arguments(func, *indices):
+    """""" Apply the pre-processing function to each selected parameter """"""
+    @wraps(func)
+    def wrap(f):
+        @wraps(f)
+        def wrapped_f(*args):
+            params = inspect.getargspec(f)[0]
+
+            args_out = list()
+            for ind, arg in enumerate(args):
+                if ind in indices:
+                    args_out.append(func(arg))
+                else:
+                    args_out.append(arg)
+
+            return f(*args_out)
+        return wrapped_f
+    return wrap
+
+
+# Function that will be used to process each parameter
+def double(x):
+    return x * 2
+
+# Decorator called by end user
+def double_selected(*args):
+    return _process_arguments(double, *args)
+
+# End-user's function
+@double_selected(2, 0)
+def say_hello(a1, a2, a3):
+    """""" doc string for say_hello """"""
+    print('{} {} {}'.format(a1, a2, a3))
+
+say_hello('say', 'hello', 'arguments')
+</code></pre>
+
+<p>The result of this code should be <em>and is</em>:</p>
+
+<pre><code>saysay hello argumentsarguments
+</code></pre>
+
+<p>However, running help on say_hello gives me:</p>
+
+<pre><code>say_hello(*args, **kwargs)
+    doc string for say_hello
+</code></pre>
+
+<p>Everything is preserved except the parameter names.</p>
+
+<p>It seems like I just need to add another @wraps() somewhere, but where?</p>",python|python-2.7|python-decorators|functools,39259648,"<p>direprobs was correct in that no amount of functools wraps would get me there. bravosierra99 pointed me to somewhat related examples. However, I couldn't find a single example of signature preservation on nested decorators in which the outer decorator takes arguments.</p>
+
+<p>The <a href=""http://www.artima.com/forums/flat.jsp?forum=106&amp;thread=240845"" rel=""nofollow"">comments on Bruce Eckel's post</a> on decorators with arguments gave me the biggest hints in achieving my desired result.</p>
+
+<p>The key was in removing the middle function from within my _process_arguments function and placing its parameter in the next, nested function. It kind of makes sense to me now...but it works:</p>
+
+<pre><code>import inspect
+from decorator import decorator
+
+# Base decorator
+def _process_arguments(func, *indices):
+    """""" Apply the pre-processing function to each selected parameter """"""
+    @decorator
+    def wrapped_f(f, *args):
+        params = inspect.getargspec(f)[0]
+
+        args_out = list()
+        for ind, arg in enumerate(args):
+            if ind in indices:
+                args_out.append(func(arg))
+            else:
+                args_out.append(arg)
+
+        return f(*args_out)
+    return wrapped_f
+
+
+# Function that will be used to process each parameter
+def double(x):
+    return x * 2
+
+# Decorator called by end user
+def double_selected(*args):
+    return _process_arguments(double, *args)
+
+# End-user's function
+@double_selected(2, 0)
+def say_hello(a1, a2,a3):
+    """""" doc string for say_hello """"""
+    print('{} {} {}'.format(a1, a2, a3))
+
+say_hello('say', 'hello', 'arguments')
+print(help(say_hello))
+</code></pre>
+
+<p>And the result:</p>
+
+<pre><code>saysay hello argumentsarguments
+Help on function say_hello in module __main__:
+
+say_hello(a1, a2, a3)
+    doc string for say_hello
+</code></pre>"
+12723234,python and python2.7 runs different python instances,"<p>This is the output when I write <code>whereis python2.7</code></p>
+
+<p><code>python2.7: /usr/local/bin/python2.7 /usr/local/lib/python2.7 /opt/python2.7.1/bin/python2.7
+</code></p>
+
+<p>Version of python under <code>/usr/local/</code> is python2.7.2 and version of python under <code>/opt/python/2.7.1</code> is python2.7.1 as you see.</p>
+
+<p>When I write <code>python</code> it runs <code>python2.7.1</code> because I changed the bash_profile. But When I write <code>python2.7</code> it runs <code>python2.7.2</code>.</p>
+
+<p>I would like totally remove the <code>python2.7.2</code> which is under the <code>/usr/local/</code> and use the binary under <code>/opt/python2.7.1</code>.</p>
+
+<p>How can I solve this problem?</p>
+
+<p>Note: It is a CentOS5 server and python2.4 is already installed as you consider.</p>",python|python-2.7|centos|python-2.x,12723300,"<p>You could simply try using an alias in ~/.bash_aliases so that you always refer to the python you want inside your terminal and user instance. I would not recommend removing python2.7.2 as it might cause dependency issues</p>
+
+<p>Like this</p>
+
+<pre><code>alias python2.7 = ""/path/to/python2.7.1/""
+</code></pre>"
+12723234,python and python2.7 runs different python instances,"<p>This is the output when I write <code>whereis python2.7</code></p>
+
+<p><code>python2.7: /usr/local/bin/python2.7 /usr/local/lib/python2.7 /opt/python2.7.1/bin/python2.7
+</code></p>
+
+<p>Version of python under <code>/usr/local/</code> is python2.7.2 and version of python under <code>/opt/python/2.7.1</code> is python2.7.1 as you see.</p>
+
+<p>When I write <code>python</code> it runs <code>python2.7.1</code> because I changed the bash_profile. But When I write <code>python2.7</code> it runs <code>python2.7.2</code>.</p>
+
+<p>I would like totally remove the <code>python2.7.2</code> which is under the <code>/usr/local/</code> and use the binary under <code>/opt/python2.7.1</code>.</p>
+
+<p>How can I solve this problem?</p>
+
+<p>Note: It is a CentOS5 server and python2.4 is already installed as you consider.</p>",python|python-2.7|centos|python-2.x,12723302,"<p>your PATH is mixed up, do the following:</p>
+
+<pre><code>export PATH=/opt/python2.7.1/bin:$PATH
+export LD_LIBRARY_PATH=/opt/python2.7.1/lib:$LD_LIBRARY_PATH
+</code></pre>"
+44709173,Parsing semi-unstructured text file with Python. Keeping some rows and pivot others,"<p>I have a file with decent structure, but the dates of subsequent events (one or more) are only printed once. I can't figure out how to read the file, recognize dates, and the map them to each game result that follows, until the next date appears.</p>
+
+<p>The data looks like this:</p>
+
+<pre><code>Sa 19.11.2016 
+FC Tuggen
+FC Basel 1893 II 
+1
+3
+
+SC Cham 
+FC Zürich II 
+0
+1
+
+SC Kriens
+FC Köniz  
+3
+1
+
+Sa 26.11.2016 
+FC Bavois
+SC Brühl  
+1
+4
+
+Mi 30.11.2016 
+FC Zürich II
+FC Basel 1893 II 
+2
+2
+</code></pre>
+
+<p>Each date can apply to one or more game results. I've tried reading through the file and grepping dates</p>
+
+<pre><code>keys = []
+for line in d:
+    if line[0:2] in ('Sa','So','Mo','Di','Mi','Do','Fr'):
+        keys.append(line[2:-1].strip())
+</code></pre>
+
+<p>But then I don't know how to assign the same date to the games the follow, until the next date arrives. For this I've tried various combinations of enumerate(), xrange(), etc. enumerate() didn't work how I tried because I could only add the first game after each date.</p>
+
+<p>My desired output looks as follows, or a defaultdict(list) with keys as the date and array elements as small dictionaries:</p>
+
+<pre><code>Sa 19.11.2016,FC Tuggen,FC Basel 1893 II,1,3
+Sa 19.11.2016,SC Cham,FC Zürich II,0,1
+Sa 19.11.2016,SC Kriens,FC Köniz,3,1
+Sa 26.11.2016,FC Bavois,SC Brühl,1,4
+Mi 30.11.2016,FC Zürich II,FC Basel 1893 II,2,2
+</code></pre>",python|python-2.7|text|data-structures|file-format,44709772,"<p>Something as simply as the following might work, assuming that the input file has a format similar to what you have shown. Keep track of the last seen date using a variable.</p>
+
+<pre><code>lastseendate = None
+gameinfo = []
+
+for line in f:
+    if line[0:2] in ('Sa','So','Mo','Di','Mi','Do','Fr'):  # date row
+        lastseendate = line.strip()
+    elif len(line.strip()) == 0:  # empty line
+        print(lastseendate + ',' + ','.join(gameinfo))  # print out the row for game just read before
+        gameinfo = []  # ready to read the next game info
+    else:
+        gameinfo.append(line.strip())
+</code></pre>
+
+<p>If the leading two characters before the date are too many to hardcode, then you could use a regular expression like below.</p>
+
+<pre><code>import re
+pat = re.compile(""[A-Za-z] \d{2}\.\d{2}\.\d{4}"")
+</code></pre>
+
+<p>Then replace the <code># date row</code> line with</p>
+
+<pre><code>if pat.match(line):
+</code></pre>
+
+<h3>EDIT</h3>
+
+<ol>
+<li>This piece of code does not print the info of the last game in the file unless there is an empty line at the end of the file. To fix this, either add an empty line at the end of the file or repeat the print statement after the loop ends.</li>
+<li>Removed <code>\n</code> in the print statement (unnecessary as <code>print</code> already prints new line).</li>
+</ol>"
+44709173,Parsing semi-unstructured text file with Python. Keeping some rows and pivot others,"<p>I have a file with decent structure, but the dates of subsequent events (one or more) are only printed once. I can't figure out how to read the file, recognize dates, and the map them to each game result that follows, until the next date appears.</p>
+
+<p>The data looks like this:</p>
+
+<pre><code>Sa 19.11.2016 
+FC Tuggen
+FC Basel 1893 II 
+1
+3
+
+SC Cham 
+FC Zürich II 
+0
+1
+
+SC Kriens
+FC Köniz  
+3
+1
+
+Sa 26.11.2016 
+FC Bavois
+SC Brühl  
+1
+4
+
+Mi 30.11.2016 
+FC Zürich II
+FC Basel 1893 II 
+2
+2
+</code></pre>
+
+<p>Each date can apply to one or more game results. I've tried reading through the file and grepping dates</p>
+
+<pre><code>keys = []
+for line in d:
+    if line[0:2] in ('Sa','So','Mo','Di','Mi','Do','Fr'):
+        keys.append(line[2:-1].strip())
+</code></pre>
+
+<p>But then I don't know how to assign the same date to the games the follow, until the next date arrives. For this I've tried various combinations of enumerate(), xrange(), etc. enumerate() didn't work how I tried because I could only add the first game after each date.</p>
+
+<p>My desired output looks as follows, or a defaultdict(list) with keys as the date and array elements as small dictionaries:</p>
+
+<pre><code>Sa 19.11.2016,FC Tuggen,FC Basel 1893 II,1,3
+Sa 19.11.2016,SC Cham,FC Zürich II,0,1
+Sa 19.11.2016,SC Kriens,FC Köniz,3,1
+Sa 26.11.2016,FC Bavois,SC Brühl,1,4
+Mi 30.11.2016,FC Zürich II,FC Basel 1893 II,2,2
+</code></pre>",python|python-2.7|text|data-structures|file-format,44739148,"<p>This alternative copes, whether or not there is a blank line at the end. The essential idea is to send an additional token representing end-of-file, which could be redundant.</p>
+
+<pre><code>class Token:
+    def __call__ (self, token):
+        if len(token) == 0 or token=='-':
+            print (','. join(self.content))
+        if token[0:2] in ('Sa','So','Mo','Di','Mi','Do','Fr'):
+            self.content = [token]
+        else:
+            self.content.append(token)
+
+token = Token()
+
+with open('football.txt') as football:
+    for line in football.readlines():
+        token(line.strip())
+    line = football.readline()
+    token('-')
+</code></pre>
+
+<p>Result:</p>
+
+<pre><code>Sa 19.11.2016,FC Tuggen,FC Basel 1893 II,1,3
+Sa 19.11.2016,FC Tuggen,FC Basel 1893 II,1,3,,SC Cham,FC Zürich II,0,1
+Sa 19.11.2016,FC Tuggen,FC Basel 1893 II,1,3,,SC Cham,FC Zürich II,0,1,,SC Kriens,FC Köniz,3,1
+Sa 26.11.2016,FC Bavois,SC Brühl,1,4
+Mi 30.11.2016,FC Zürich II,FC Basel 1893 II,2,2
+</code></pre>"
+44709173,Parsing semi-unstructured text file with Python. Keeping some rows and pivot others,"<p>I have a file with decent structure, but the dates of subsequent events (one or more) are only printed once. I can't figure out how to read the file, recognize dates, and the map them to each game result that follows, until the next date appears.</p>
+
+<p>The data looks like this:</p>
+
+<pre><code>Sa 19.11.2016 
+FC Tuggen
+FC Basel 1893 II 
+1
+3
+
+SC Cham 
+FC Zürich II 
+0
+1
+
+SC Kriens
+FC Köniz  
+3
+1
+
+Sa 26.11.2016 
+FC Bavois
+SC Brühl  
+1
+4
+
+Mi 30.11.2016 
+FC Zürich II
+FC Basel 1893 II 
+2
+2
+</code></pre>
+
+<p>Each date can apply to one or more game results. I've tried reading through the file and grepping dates</p>
+
+<pre><code>keys = []
+for line in d:
+    if line[0:2] in ('Sa','So','Mo','Di','Mi','Do','Fr'):
+        keys.append(line[2:-1].strip())
+</code></pre>
+
+<p>But then I don't know how to assign the same date to the games the follow, until the next date arrives. For this I've tried various combinations of enumerate(), xrange(), etc. enumerate() didn't work how I tried because I could only add the first game after each date.</p>
+
+<p>My desired output looks as follows, or a defaultdict(list) with keys as the date and array elements as small dictionaries:</p>
+
+<pre><code>Sa 19.11.2016,FC Tuggen,FC Basel 1893 II,1,3
+Sa 19.11.2016,SC Cham,FC Zürich II,0,1
+Sa 19.11.2016,SC Kriens,FC Köniz,3,1
+Sa 26.11.2016,FC Bavois,SC Brühl,1,4
+Mi 30.11.2016,FC Zürich II,FC Basel 1893 II,2,2
+</code></pre>",python|python-2.7|text|data-structures|file-format,44709533,"<pre><code># vim: set fileencoding=utf-8 :
+
+
+def parse(it):
+  record, date = [], """"
+  for line in it:
+    line = line.strip()
+    if not line:
+      if len(record) &gt; 1:
+        yield "","".join(record)
+      if date:
+        record = [date]
+      continue
+    if line.startswith(('Sa', 'So', 'Mo', 'Di', 'Mi', 'Do', 'Fr')):
+      if len(record) &gt; 1:
+        yield "","".join(record)
+      date = line
+      record = [date]
+      continue
+
+    record.append(line)
+
+  if len(record) &gt; 1:
+    yield "","".join(record)
+
+
+if __name__ == ""__main__"":
+  input = """"""
+Sa 19.11.2016
+FC Tuggen
+FC Basel 1893 II
+1
+3
+
+SC Cham
+FC Zürich II
+0
+1
+
+SC Kriens
+FC Köniz
+3
+1
+
+Sa 26.11.2016
+FC Bavois
+SC Brühl
+1
+4
+
+Mi 30.11.2016
+FC Zürich II
+FC Basel 1893 II
+2
+2
+""""""
+  output = """"""Sa 19.11.2016,FC Tuggen,FC Basel 1893 II,1,3
+Sa 19.11.2016,SC Cham,FC Zürich II,0,1
+Sa 19.11.2016,SC Kriens,FC Köniz,3,1
+Sa 26.11.2016,FC Bavois,SC Brühl,1,4
+Mi 30.11.2016,FC Zürich II,FC Basel 1893 II,2,2
+""""""
+  for record, expected in zip(parse(input.splitlines()), output.splitlines()):
+    assert record == expected
+</code></pre>"
+44709173,Parsing semi-unstructured text file with Python. Keeping some rows and pivot others,"<p>I have a file with decent structure, but the dates of subsequent events (one or more) are only printed once. I can't figure out how to read the file, recognize dates, and the map them to each game result that follows, until the next date appears.</p>
+
+<p>The data looks like this:</p>
+
+<pre><code>Sa 19.11.2016 
+FC Tuggen
+FC Basel 1893 II 
+1
+3
+
+SC Cham 
+FC Zürich II 
+0
+1
+
+SC Kriens
+FC Köniz  
+3
+1
+
+Sa 26.11.2016 
+FC Bavois
+SC Brühl  
+1
+4
+
+Mi 30.11.2016 
+FC Zürich II
+FC Basel 1893 II 
+2
+2
+</code></pre>
+
+<p>Each date can apply to one or more game results. I've tried reading through the file and grepping dates</p>
+
+<pre><code>keys = []
+for line in d:
+    if line[0:2] in ('Sa','So','Mo','Di','Mi','Do','Fr'):
+        keys.append(line[2:-1].strip())
+</code></pre>
+
+<p>But then I don't know how to assign the same date to the games the follow, until the next date arrives. For this I've tried various combinations of enumerate(), xrange(), etc. enumerate() didn't work how I tried because I could only add the first game after each date.</p>
+
+<p>My desired output looks as follows, or a defaultdict(list) with keys as the date and array elements as small dictionaries:</p>
+
+<pre><code>Sa 19.11.2016,FC Tuggen,FC Basel 1893 II,1,3
+Sa 19.11.2016,SC Cham,FC Zürich II,0,1
+Sa 19.11.2016,SC Kriens,FC Köniz,3,1
+Sa 26.11.2016,FC Bavois,SC Brühl,1,4
+Mi 30.11.2016,FC Zürich II,FC Basel 1893 II,2,2
+</code></pre>",python|python-2.7|text|data-structures|file-format,44709712,"<p>Edit: Ok, misread the problem earlier.This one works with all the provided data, I just didn't want to take up all that space in my code on SO.</p>
+
+<p>First, I split the text by line. Going through each line I do a couple of things. One, I keep track of start lines, which are the first line and any line after an empty line. An empty line also sets the needDate flag to true. </p>
+
+<p>For lines that aren't empty, I use a regex to search for a date. If I find one, its set as the (current) date. Otherwise, I check if needDate is set (due to the previous line being empty) and if so append the date to that line.</p>
+
+<p>Then I grouped the lines, with each start line starting a group using my subList function, then I joined grouped lines with commas. </p>
+
+<pre><code>tf = """"""Sa 19.11.2016
+FC Tuggen
+FC Basel 1893 II
+1
+3
+""""""
+
+import re
+
+i=0
+sl=[0] #start lines
+gnu = True
+dlt = False # date last turn
+lines = tf.split('\n')
+for line in lines:
+    line = line.rstrip()
+    if not line == '':
+        regex = re.search('[A-Za-z]+ [0-9]+\.[0-9]+\.[0-9]+', line)
+        if regex:
+            date = regex.group(0) 
+            dlt = True
+        elif needDate:
+            lines[i] = date + ',' + line
+        needDate= False
+    else:
+            sl.append(i+1)
+            needDate = True
+    i += 1
+
+def subList(lzt, inds):
+    tups = []
+    for i in range(len(inds)):
+        if i &lt; len(inds)-1:
+            tups.append( (inds[i], inds[i+1]))
+        else:
+            tups.append( (inds[i], len(lzt)))
+    return [lzt[s:e] for s,e in tups]
+
+ans = []
+for x in subList(lines, sl):
+    ans.append("","".join(x[:-1]))
+
+for line in ans:
+    print(line)
+</code></pre>"
+44773427,pymongo float precision,<p>I have a number stored in mongo as 15000.245263 with 6 numbers after decimal point but when I use pymongo to get this number I got 15000.24. Is the pymongo reduced the precision of float?</p>,python-2.7|pymongo|floating-accuracy,50507983,"<p>This could happen if you trying to print out a long float value, and i think it is not related to mongodb.</p>
+
+<pre><code>&gt;&gt;&gt; print 1111.1111
+1111.1111
+
+&gt;&gt;&gt; print 1111111111.111
+1111111111.11
+
+&gt;&gt;&gt; print 1111111.11111111111
+1111111.11111
+
+# for a timestamp
+&gt;&gt;&gt; import time
+&gt;&gt;&gt; now = time.time()
+&gt;&gt;&gt; print now
+1527160240.06
+</code></pre>
+
+<p>For python2.7.10 it will just display 13 character(for my machine), if you want to display the whole value, use a format instead, like this:</p>
+
+<pre><code>&gt;&gt;&gt; print '%.6f' % 111111111.111111
+111111111.111111
+</code></pre>
+
+<p>And this is just a display problem, the value of the variable will not be affected.</p>
+
+<pre><code>&gt;&gt;&gt; test = 111111111.111111 * 2
+&gt;&gt;&gt; test
+222222222.222222
+&gt;&gt;&gt; print test
+222222222.222
+</code></pre>"
+44773427,pymongo float precision,<p>I have a number stored in mongo as 15000.245263 with 6 numbers after decimal point but when I use pymongo to get this number I got 15000.24. Is the pymongo reduced the precision of float?</p>,python-2.7|pymongo|floating-accuracy,44781563,"<p>I can't reproduce this. In Python 2.7.13 on my Mac:</p>
+
+<pre><code>&gt;&gt;&gt; from pymongo import MongoClient
+&gt;&gt;&gt; c = MongoClient().my_db.my_collection
+&gt;&gt;&gt; c.delete_many({})  # Delete all documents
+&gt;&gt;&gt; c.insert_one({'x': 15000.245263})
+&gt;&gt;&gt; c.find_one()
+{u'x': 15000.245263, u'_id': ObjectId('59525d32a08bff0800cc72bd')}
+</code></pre>
+
+<p>The retrieved value of ""x"" is printed the same as it was when I entered it.</p>"
+21483120,Short animation class in Pygame?,"<p>I litterally have no idea still as to how to use classes. I just need to do an 18 frame animation and have the capability of doing it anywhere (25 times) in a 5x5 grid. Any ideas on how this could be accomplished?</p>
+
+<p>Anyway, this is what I have so far:</p>
+
+<pre><code>class showRectangles:
+  def __init__(self):
+    pass
+  def flipcard(self):
+    while showrect:
+      pygame.draw.rect(window,black,[self.position,75*scale,75*scale])
+    self.blitoptions = self.image,self.position,[[55,self.frame,0],[75*scale,75*scale]]
+    window.blit(pygame.transform.smoothscale(self.blitoptions,75*scale).convert_alpha())
+    if self.flipping and self.frame != 18:
+      self.frame += 1
+    else:
+      self.flipping = False
+
+class boardCard(showRectangles):
+
+  def __init__(self,pos):
+    self.position = pos
+    self.rect = Rect(self.position[0]*scale,self.position[1]*scale,self.position[0]+75*scale,self.position[1]+75*scale)
+    self.flipping = False
+    self.frame = 0
+    self.image = themedb[""default""][""images""][""flipanimation""]
+
+
+  # def getrect(self):
+  #   return pygame.rect(int(self.position[0]),int(self.position[1]),int(self.position[0])+75*scale,int(self.position[1])+75*scale)
+</code></pre>
+
+<p>Variables:</p>
+
+<p>Showrect shows the areas that are clickable as a sort of ""debug view"".</p>
+
+<p>Scale is what resizes the window and images on it.</p>
+
+<p>ThemeDB is the set of themes for the game. ""FlipAnimation.png"" is stored here.</p>",python|class|object|python-2.7|pygame,21483693,"<p>Did you read the <a href=""http://docs.python.org/2/tutorial/classes.html"" rel=""nofollow"">python tutorials</a>? They have a great explanation about classes.</p>
+
+<p>I'm not sure what you are trying to accomplish, but it seems that you have a grid of rectangles, and after a click, you want to flip the card with an animation.</p>
+
+<p>What you want is to define a class MyRectangle, that will have the methods <code>__init__</code>, <code>draw</code> and <code>update</code>. Here is an short example:</p>
+
+<pre><code>class Card:
+    def __init__(self,pos):
+        self.flipping = false
+        self.images = loadImages()
+        self.frame = 0
+        self.pos = pos
+    def flip():
+        self.flipping = true
+    def update():
+        if self.flipping:
+            self.frame += 1
+            self.frame %= len(self.images)
+    def draw(screen):
+        screen.blit(self.images[self.frame],self.pos)
+</code></pre>
+
+<p>Your main loop code will look like this:</p>
+
+<pre><code>cards = []
+for x in range(10):
+   for y in range(10):
+      cards.append(Card((x*10,y*10)))
+while not finished:
+    for card in cards:
+        card.draw(screen)
+        card.update()
+#somewhere in the event loop:
+    card.flip()
+</code></pre>"
+21809020,How do I split this string in python 2.7 keeping spaces?,"<p>I am looking for a way to take a string and output it as a list with each character split?</p>
+
+<pre><code>&gt;&gt;&gt; sentence = 'hello I am cool'
+&gt;&gt;&gt; what_i_want(sentence)
+['h', 'e', 'l', 'l', 'o', ' ', 'I', ' ', 'a', 'm', ' ', 'c', 'o', 'o', 'l']
+</code></pre>
+
+<p>However, this doesn't seem to work:</p>
+
+<pre><code>&gt;&gt;&gt; sentence = 'hello I am cool'
+&gt;&gt;&gt; sentence = ' '.join(sentence).split()
+&gt;&gt;&gt; print sentence
+['h', 'e', 'l', 'l', 'o', 'I', 'a', 'm', 'c', 'o', 'o', 'l']
+</code></pre>
+
+<p>It doesn't print the space in between! Also, this doesn't work:</p>
+
+<pre><code>&gt;&gt;&gt; import re
+&gt;&gt;&gt; splitter = re.compile(r'(\s+|\S+)')
+&gt;&gt;&gt; sentence = 'hello I am cool'
+&gt;&gt;&gt; splitter.findall(sentence)
+['hello', ' ', 'I', ' ', 'am', ' ', 'cool']
+&gt;&gt;&gt; sentence = ' '.join(sentence)
+&gt;&gt;&gt; splitter.findall(sentence)
+['h', ' ', 'e', ' ', 'l', ' ', 'l', ' ', 'o', '   ', 'i', '   ', 'a', ' ', 'm', '   ', 'a', ' ', 'j']
+</code></pre>
+
+<p>Can anyone tell me an efficient and relatively easy way to do this?
+Thanks in advance!</p>",python|regex|string|list|python-2.7,21809037,"<p>Using <code>list()</code>:</p>
+
+<pre><code>&gt;&gt;&gt; list(sentence)
+['h', 'e', 'l', 'l', 'o', ' ', 'I', ' ', 'a', 'm', ' ', 'c', 'o', 'o', 'l']
+</code></pre>"
+21809020,How do I split this string in python 2.7 keeping spaces?,"<p>I am looking for a way to take a string and output it as a list with each character split?</p>
+
+<pre><code>&gt;&gt;&gt; sentence = 'hello I am cool'
+&gt;&gt;&gt; what_i_want(sentence)
+['h', 'e', 'l', 'l', 'o', ' ', 'I', ' ', 'a', 'm', ' ', 'c', 'o', 'o', 'l']
+</code></pre>
+
+<p>However, this doesn't seem to work:</p>
+
+<pre><code>&gt;&gt;&gt; sentence = 'hello I am cool'
+&gt;&gt;&gt; sentence = ' '.join(sentence).split()
+&gt;&gt;&gt; print sentence
+['h', 'e', 'l', 'l', 'o', 'I', 'a', 'm', 'c', 'o', 'o', 'l']
+</code></pre>
+
+<p>It doesn't print the space in between! Also, this doesn't work:</p>
+
+<pre><code>&gt;&gt;&gt; import re
+&gt;&gt;&gt; splitter = re.compile(r'(\s+|\S+)')
+&gt;&gt;&gt; sentence = 'hello I am cool'
+&gt;&gt;&gt; splitter.findall(sentence)
+['hello', ' ', 'I', ' ', 'am', ' ', 'cool']
+&gt;&gt;&gt; sentence = ' '.join(sentence)
+&gt;&gt;&gt; splitter.findall(sentence)
+['h', ' ', 'e', ' ', 'l', ' ', 'l', ' ', 'o', '   ', 'i', '   ', 'a', ' ', 'm', '   ', 'a', ' ', 'j']
+</code></pre>
+
+<p>Can anyone tell me an efficient and relatively easy way to do this?
+Thanks in advance!</p>",python|regex|string|list|python-2.7,21809031,"<p>Passing a string to <a href=""http://docs.python.org/2/library/functions.html#list""><code>list</code></a>, you will get a list of single-character strings.</p>
+
+<pre><code>&gt;&gt;&gt; sentence = 'hello I am cool'
+&gt;&gt;&gt; list(sentence)
+['h', 'e', 'l', 'l', 'o', ' ', 'I', ' ', 'a', 'm', ' ', 'c', 'o', 'o', 'l']
+</code></pre>"
+21809020,How do I split this string in python 2.7 keeping spaces?,"<p>I am looking for a way to take a string and output it as a list with each character split?</p>
+
+<pre><code>&gt;&gt;&gt; sentence = 'hello I am cool'
+&gt;&gt;&gt; what_i_want(sentence)
+['h', 'e', 'l', 'l', 'o', ' ', 'I', ' ', 'a', 'm', ' ', 'c', 'o', 'o', 'l']
+</code></pre>
+
+<p>However, this doesn't seem to work:</p>
+
+<pre><code>&gt;&gt;&gt; sentence = 'hello I am cool'
+&gt;&gt;&gt; sentence = ' '.join(sentence).split()
+&gt;&gt;&gt; print sentence
+['h', 'e', 'l', 'l', 'o', 'I', 'a', 'm', 'c', 'o', 'o', 'l']
+</code></pre>
+
+<p>It doesn't print the space in between! Also, this doesn't work:</p>
+
+<pre><code>&gt;&gt;&gt; import re
+&gt;&gt;&gt; splitter = re.compile(r'(\s+|\S+)')
+&gt;&gt;&gt; sentence = 'hello I am cool'
+&gt;&gt;&gt; splitter.findall(sentence)
+['hello', ' ', 'I', ' ', 'am', ' ', 'cool']
+&gt;&gt;&gt; sentence = ' '.join(sentence)
+&gt;&gt;&gt; splitter.findall(sentence)
+['h', ' ', 'e', ' ', 'l', ' ', 'l', ' ', 'o', '   ', 'i', '   ', 'a', ' ', 'm', '   ', 'a', ' ', 'j']
+</code></pre>
+
+<p>Can anyone tell me an efficient and relatively easy way to do this?
+Thanks in advance!</p>",python|regex|string|list|python-2.7,24537899,"<p>You can also use <code>for</code> loops on strings, if you want to iterate each character.</p>
+
+<pre><code>for chr in 'hello I am cool':
+    print(chr)
+</code></pre>
+
+<p>It should result in:</p>
+
+<pre><code>h
+e
+l
+l
+o
+
+I
+
+a
+m
+
+c
+o
+o
+l
+</code></pre>"
+44036755,TicTacToe project in Python 2: I am trying to avoid using global variables and return variables instead,"<p>I am working on a project, and I have no idea how to avoid using global variables. I have a list of functions that perform bits and pieces but I am not able to pass variables between them!</p>
+
+<p>Here is my current code:</p>
+
+<p>===================</p>
+
+<pre><code>def player_names_input():
+    global player_A_name,player_B_name
+    player_A_name = raw_input(""Please enter name for Player A    :   "")
+    player_B_name = raw_input(""Please enter name for Player B    :   "")
+
+def coin_flip():
+    global player_A_name,player_B_name,start_player,end_player,game_state
+    game_state = ""running""
+    import random
+    print ""\nFlipping a coin to see who starts first...""
+    random_int = random.randint(0, 1)
+    if random_int == 0:
+        coin = 'Heads'
+        start_player = player_A_name
+        end_player = player_B_name
+    else:
+        coin = 'Tails'
+        start_player = player_B_name
+        end_player = player_A_name
+    print '\nCoin flip --&gt; ',coin
+    print '\nStarting player --&gt; ',start_player
+    print '\nStarting player gets ""X""'
+
+player_names_input()
+coin_flip()
+</code></pre>
+
+<p>Here is my failed attempt to use return instead of global:</p>
+
+<p>=========================================================</p>
+
+<pre><code>def player_names_input():
+    player_A_name = raw_input(""Please enter name for Player A    :   "")
+    player_B_name = raw_input(""Please enter name for Player B    :   "")
+    return player_A_name,player_B_name
+
+def coin_flip(player_A_name,player_B_name):
+    game_state = ""running""
+    import random
+    print ""\nFlipping a coin to see who starts first...""
+    random_int = random.randint(0, 1)
+    if random_int == 0:
+        coin = 'Heads'
+        start_player = player_A_name
+        end_player = player_B_name
+    else:
+        coin = 'Tails'
+        start_player = player_B_name
+        end_player = player_A_name
+    print '\nCoin flip --&gt; ',coin
+    print '\nStarting player --&gt; ',start_player
+    print '\nStarting player gets ""X""'
+
+player_names_input()
+coin_flip(player_A_name,player_B_name)
+</code></pre>
+
+<p>1- Please help make my second code run, I really wanna avoid global variables as everyone recommends.
+2- Please critique my code, I am in the beginning and I am trying to learn writing good code (not just code). How bad is my attempt?</p>",python|python-2.7|tic-tac-toe,44036798,"<p>Since you have defined <code>player_names_input()</code> to return a 2-tuple (the two values, <code>player_A_name</code> and <code>player_B_name</code>), you could just assign them like so in the scope you are using that function,</p>
+
+<pre><code>player_A_name, player_B_name = player_names_input()
+</code></pre>
+
+<p>Now, when this is called:</p>
+
+<pre><code>coin_flip(player_A_name, player_B_name)
+</code></pre>
+
+<p>The two variables will be available for use.</p>
+
+<p>You may want to consider wrapping the actual main program in a main method like </p>
+
+<pre><code>def main():
+    player_A_name, player_B_name = player_names_input()
+    coin_flip(player_A_name, player_B_name)
+</code></pre>
+
+<p>And call that if that file was directly executed - this is done by checking the magic <code>__name__</code> variable to equal to the string <code>'__main__'</code>, so add this too to the end of your program file.</p>
+
+<pre><code>if __name__ == '__main__':
+    main()
+</code></pre>"
+57112193,How to find local maximum in a Numpy array and then trace local minimum around it?,"<p>If I have a numpy array like this:</p>
+
+<pre><code> np.array([[5, 5, 5, 3,  5, 3, 5, 6, 2, 4],
+          [4, 4, 4, 5,  5, 5, 6, 5, 5, 5],
+          [3, 3, 6, 5,  5, 6, 5, 4, 4, 6],
+          [4, 4, 1, 5,  4, 6, 5, 5, 5, 5],
+          [4, 5, 4, 2,  4, 5, 4, 4, 5, 5],
+          [5, 5, 7, 7,  3, 2, 4, 4, 5, 4],
+          [5, 5, 6, 8,  7, 5, 3, 3, 4, 5],
+          [0, 0, 5, 7, 10, 7, 5, 5, 3, 5],
+          [0, 0, 5, 6,  6, 8, 7, 6, 5, 3],
+          [0, 0, 0, 0,  0, 0, 0, 0, 0, 0]])
+</code></pre>
+
+<p>How do I find the maximum value 10? and then the closest local minimum upwards from it which is 3? </p>
+
+<p>Once I find the local minimum I need to find the local minimums surrounding that point and trace them such that I get:</p>
+
+<pre><code> np.array([[0, 0, 0, 0,  0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0,  0, 0, 0, 0, 0, 0],
+          [1, 1, 0, 0,  0, 0, 0, 0, 0, 0],
+          [0, 0, 1, 0,  0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 1,  0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0,  1, 1, 0, 0, 0, 0],
+          [0, 0, 0, 0,  0, 0, 1, 1, 0, 0],
+          [0, 0, 0, 0,  0, 0, 0, 0, 1, 0],
+          [0, 0, 0, 0,  0, 0, 0, 0, 0, 1],
+          [0, 0, 0, 0,  0, 0, 0, 0, 0, 0]])
+</code></pre>",python|python-2.7|numpy,57114832,"<p>There are several ambiguities you'd need to deal with. It sounds like the algorithm you want does the following:</p>
+
+<ol>
+<li>Find the maximum A. This can be done with built-ins, but note that there can be more than one. How do you pick?</li>
+<li>For each element B, enumerate its direct neighbors. Does that include diagonal neighbors?</li>
+<li>Check if all neighbors of B are larger than B, making B a local minimum.</li>
+<li>If B is a local minimum, calculate its distance from A. What is the distance function?</li>
+<li>Return the minimum with the smallest distance from A</li>
+</ol>
+
+<p>(Note that there may be several local minima that are equally distant from the maximum, and which is returned depends on how the array is traversed.)</p>"
+21401296,Import framenet from nltk.corpus(.reader) in python2.7: ImportError,"<p>I noticed that I cannot import framenet from nltk.corpus.reader or from nltk.corpus and understood that it is available in newer versions of NLTK.</p>
+
+<pre><code>$ python
+Python 2.7.5+ (default, Sep 19 2013, 13:48:49) 
+[GCC 4.8.1] on linux2
+Type ""help"", ""copyright"", ""credits"" or ""license"" for more information.
+&gt;&gt;&gt; import nltk
+&gt;&gt;&gt; nltk.__version__
+'3.0a2'
+</code></pre>
+
+<p>But the nltk.downloader shows an entry for framenet_v15 and in the filesystem I have a directory framnet_v15.
+So why can I not import it?</p>
+
+<pre><code>&gt;&gt;&gt; from nltk.corpus import framenet
+Traceback (most recent call last):
+  File ""&lt;stdin&gt;"", line 1, in &lt;module&gt;
+ImportError: cannot import name framenet
+&gt;&gt;&gt; from nltk.corpus.reader import framenet
+Traceback (most recent call last):
+  File ""&lt;stdin&gt;"", line 1, in &lt;module&gt;
+ImportError: cannot import name framenet
+</code></pre>
+
+<p>As you can see: framenet corpus is already installed</p>
+
+<p><img src=""https://i.stack.imgur.com/BbKkN.png"" alt=""framenet corpus is already installed""></p>",python|python-2.7|nltk|importerror,21401460,"<p><strong>Example</strong></p>
+
+<pre><code>#!/usr/bin/env python
+
+from nltk.corpus.reader import framenet
+</code></pre>
+
+<p><strong>Installation</strong></p>
+
+<ol>
+<li><p>Download <a href=""http://nltk.org/nltk3-alpha/nltk-3.0a2.tar.gz"" rel=""nofollow"">NLTK 3.0</a> </p></li>
+<li><p>tar -xzvf ntlk-3.0a3.tar.gz</p></li>
+<li><p>cd nltk-3.0a3/</p></li>
+<li><p>sudo python setup.py install</p></li>
+</ol>
+
+<p><strong>Execution</strong></p>
+
+<blockquote>
+  <p>./example.py</p>
+</blockquote>"
+15978369,What is wrong with my code? python,"<p>I am Programming in python however i have come to a slight glitch which i cannot solve! The issue is that when it prints out in a text files it only prints one line of the whole output! Otherwise it works! Please i need help to make this work!</p>
+
+<pre><code>import sys, bz2, string, os
+#instead of hardcoding filename, get it from arguments
+#filename = os.getcwd()
+filename = raw_input(""Enter the path of bz2 document e.g. files/access_log-20130301.bz2: "")
+print ""Using file : "" + filename
+source_file = bz2.BZ2File(filename, ""r"") 
+for line in source_file:
+    #Extract the date and put into a variable 
+    logdate = string.split(line)[3][1:12]
+    #Extract movie name and put into variable movie
+    movie = string.split(line)[6]
+    #extract who read the movie username = 
+    usernames = string.split(line)[2]
+    #Only process the movie line if we have /media/movie in it. 
+    if movie.find('media/movies') &gt; 0:
+        #Prints all things prosscesed
+        print ""User:"" + usernames + "" On:"" +  logdate + "" Was watching:""+ movie
+        #p=open(filename+""record.txt"", ""w"")
+        fp=open(filename+""record.txt"", ""wb+"")
+        fp.write(""User: "" + usernames + "" On: "" +  logdate + "" Was watching: ""+ movie+"" File from:""+filename+""\n"")
+sys.exit()
+</code></pre>",python|python-2.7,15978480,"<p>You're opening the output file in write mode inside the loop. Open it once outside your main loop.</p>
+
+<p>Be sure to close it when you're done. Even better, write that like:</p>
+
+<pre><code>with open(filename + ""record.txt"", ""wb+"") as fp:
+    for line in source_file:
+        ...
+        fp.write(...)
+</code></pre>
+
+<p>so that the <code>open</code> context manager closes it for you afterward.</p>"
+15978369,What is wrong with my code? python,"<p>I am Programming in python however i have come to a slight glitch which i cannot solve! The issue is that when it prints out in a text files it only prints one line of the whole output! Otherwise it works! Please i need help to make this work!</p>
+
+<pre><code>import sys, bz2, string, os
+#instead of hardcoding filename, get it from arguments
+#filename = os.getcwd()
+filename = raw_input(""Enter the path of bz2 document e.g. files/access_log-20130301.bz2: "")
+print ""Using file : "" + filename
+source_file = bz2.BZ2File(filename, ""r"") 
+for line in source_file:
+    #Extract the date and put into a variable 
+    logdate = string.split(line)[3][1:12]
+    #Extract movie name and put into variable movie
+    movie = string.split(line)[6]
+    #extract who read the movie username = 
+    usernames = string.split(line)[2]
+    #Only process the movie line if we have /media/movie in it. 
+    if movie.find('media/movies') &gt; 0:
+        #Prints all things prosscesed
+        print ""User:"" + usernames + "" On:"" +  logdate + "" Was watching:""+ movie
+        #p=open(filename+""record.txt"", ""w"")
+        fp=open(filename+""record.txt"", ""wb+"")
+        fp.write(""User: "" + usernames + "" On: "" +  logdate + "" Was watching: ""+ movie+"" File from:""+filename+""\n"")
+sys.exit()
+</code></pre>",python|python-2.7,15978469,"<p>The problem is likely that you are opening a new file handle for the file each time you want to write a line, and you do not flush the output first.  There are two possible solutions here:</p>
+
+<ol>
+<li>Open the file you intend to write to before your main <code>for</code> loop.  This way you will only have one file handle, and a lack of flushing will not cause this behavior.  Make sure you close the file when you are done.  (Consider using a <code>with</code> block, which will cause the file to be closed automatically at the termination of the block: <code>with open(filename + ""record.txt"", ""wb+"") as f:</code>)</li>
+<li>Close <code>fp</code> immediately after the <code>fp.write()</code> call, which will force any buffered output to be flushed, at least to the kernel I/O cache.</li>
+</ol>
+
+<p>I would prefer option 1, as there is no reason to open and close the file multiple times in this case.  (If you are writing many lines to the file, these open/flush/close cycles will wind up wasting a lot of time!)</p>
+
+<p>Option 1 would look something like this:</p>
+
+<pre><code>import sys, bz2, string, os
+#instead of hardcoding filename, get it from arguments
+#filename = os.getcwd()
+filename = raw_input(""Enter the path of bz2 document e.g. files/access_log-20130301.bz2: "")
+print ""Using file : "" + filename
+with open(filename+""record.txt"", ""wb+"") as fp:
+    source_file = bz2.BZ2File(filename, ""r"") 
+    for line in source_file:
+        #Extract the date and put into a variable 
+        logdate = string.split(line)[3][1:12]
+        #Extract movie name and put into variable movie
+        movie = string.split(line)[6]
+        #extract who read the movie username = 
+        usernames = string.split(line)[2]
+        #Only process the movie line if we have /media/movie in it. 
+        if movie.find('media/movies') &gt; 0:
+            #Prints all things prosscesed
+            print ""User:"" + usernames + "" On:"" +  logdate + "" Was watching:""+ movie
+            #p=open(filename+""record.txt"", ""w"")
+            fp.write(""User: "" + usernames + "" On: "" +  logdate + "" Was watching: ""+ movie+"" File from:""+filename+""\n"")
+
+# The with block has ended at this point, so the file will already be closed here.
+
+sys.exit()
+</code></pre>"
+33208612,Wait and notify multiple threads at the same time python,"<p>I am new to threading and python and I want to hit a server with multiple (10) http requests at the same time. I have a utility for sending the request. I wrote a code as follows:</p>
+
+<pre><code>import time
+import threading
+
+def send_req():
+    start = time.time()
+    response = http_lib.request(ip,port,headers,body,url)
+    end = time.time()
+    response_time = start - end
+    print ""Response Time: "", response_time
+
+def main():
+    thread_list = []
+    for thread in range(10):
+        t = threading.Thread(target=send_req)
+        t.start()
+        thread_list.append(t)
+
+    for i in thread_list:
+        i.join()
+
+if (__name__ == ""__main__""):
+    main()
+</code></pre>
+
+<p>It runs and prints out the response times. But then, since I am creating the threads one after the other their execution seems to be sequential and not concurrent. Can I create 10 threads at the same time and then let them execute together or create threads one by one keeping the created ones on wait until they are all finished creating and then execute them at the same time?</p>",python|multithreading|python-2.7|concurrent-programming,33209194,"<p>What do you mean by ""at the same time"" ?, threads do work in parallel behavior but you cannot start the threads at same exact time because python is a scripting language n its executes line by line.</p>
+
+<p>however, One possible solution is, you can start the threads one by one, then inside the threads, you wait for some flag to trigger and keep that flag global in all of your created threads. As that flag gets True, your threads will start their process at same time. Make sure to trigger that flag=True AFTER starting all of the threads. i.e.; </p>
+
+<pre><code>def send_req():
+    global flag
+    while flag==False:
+        pass          # stay here unless the flag gets true
+    start = time.time()
+    response = http_lib.request(ip,port,headers,body,url)
+    end = time.time()
+    response_time = start - end
+    print ""Response Time: "", response_time
+    run_once=True
+
+def main():
+ flag=False
+ thread_list = []
+ for thread in range(10):
+    t = threading.Thread(target=send_req)  # creating threads one by one
+    #t.start()
+    thread_list.append(t)
+
+ for j in thread_list:   # now starting threads (still one by one)
+    j.start()
+
+ flag=True      # now start the working of each thread by releasing this flag from False to true     
+
+ for i in thread_list:
+    i.join()
+</code></pre>"
+17757450,"How to print a list with integers without the brackets, commas and no quotes?","<p>This is a list of Integers and this is how they are printing:</p>
+
+<pre><code>[7, 7, 7, 7]
+</code></pre>
+
+<p>I want them to simply print like this:</p>
+
+<pre><code>7777
+</code></pre>
+
+<p>I don't want brackets, commas or quotes.  What to do?</p>",python|python-2.7|python-3.x,17757460,"<p>Try this:</p>
+
+<pre><code>print("""".join(str(x) for x in This))
+</code></pre>"
+17757450,"How to print a list with integers without the brackets, commas and no quotes?","<p>This is a list of Integers and this is how they are printing:</p>
+
+<pre><code>[7, 7, 7, 7]
+</code></pre>
+
+<p>I want them to simply print like this:</p>
+
+<pre><code>7777
+</code></pre>
+
+<p>I don't want brackets, commas or quotes.  What to do?</p>",python|python-2.7|python-3.x,17757544,"<p>If you're using Python 3, or appropriate Python 2.x version with <code>from __future__ import print_function</code> then:</p>
+
+<pre><code>data = [7, 7, 7, 7]
+print(*data, sep='')
+</code></pre>
+
+<p>Otherwise, you'll need to convert to string and print:</p>
+
+<pre><code>print ''.join(map(str, data))
+</code></pre>"
+17757450,"How to print a list with integers without the brackets, commas and no quotes?","<p>This is a list of Integers and this is how they are printing:</p>
+
+<pre><code>[7, 7, 7, 7]
+</code></pre>
+
+<p>I want them to simply print like this:</p>
+
+<pre><code>7777
+</code></pre>
+
+<p>I don't want brackets, commas or quotes.  What to do?</p>",python|python-2.7|python-3.x,17757999,"<p>Using <code>.format</code> from Python 2.6 and higher:</p>
+
+<pre><code>&gt;&gt;&gt; print '{}{}{}{}'.format(*[7,7,7,7])
+7777
+&gt;&gt;&gt; data = [7, 7, 7, 7] * 3
+&gt;&gt;&gt; print ('{}'*len(data)).format(*data)
+777777777777777777777777
+</code></pre>
+
+<p>For Python 3:</p>
+
+<pre><code>&gt;&gt;&gt; print(('{}'*len(data)).format(*data))
+777777777777777777777777
+</code></pre>"
