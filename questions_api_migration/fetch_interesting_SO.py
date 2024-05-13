@@ -1,6 +1,5 @@
 from google.cloud import bigquery
-
-client = bigquery.Client()
+import csv
 
 
 def fetch_so(api_name):
@@ -46,11 +45,29 @@ def fetch_so(api_name):
     return apis_python_posts
 
 
+def get_API_name(input_csv):
+    API_names = []
+    with open(input_csv, 'r', encoding='utf-8') as file:
+        next(file)
+        for line in file:
+            API = line.split(',')[-1].strip()
+
+            # Remove '__call__' or '__init__' if present
+            if '__call__' in API:
+                # Remove '__call__' and get the preceding text
+                API = API.replace('.__call__', '')
+            elif '__init__' in API:
+                # Remove '__init__' and get the preceding text
+                API = API.replace('.__init__', '')
+            API_names.append(API)
+    return API_names
+
+
 output_csv_path = "apis_python_posts.csv"
-
-import csv
-
-# Stop here. Go over all the API names in the csv file.
+API_names = get_API_name("API_results/deprecated_apis_general_lang_chain.csv")
+print(API_names)
+client = bigquery.Client()
+# Stop here. Errors when running with bigquey
 python_posts = fetch_so("profile.start")
 with open(output_csv_path, mode="w", newline="", encoding="utf-8") as csvfile:
     fieldnames = python_posts[0].keys() if python_posts else []
