@@ -12,13 +12,15 @@ def fetch_so(api_name, app_name, file_dir):
             for line in infile:
                 if api_name in line and app_name in line:
                     related_post.append(line)
-                elif (app_name in line) and (len(possible_related_post)+len(related_post) < 100):
-                    possible_related_post.append(line)
-            if len(related_post) > 100:
+      #          elif (app_name in line) and (len(possible_related_post)+len(related_post) < 40):
+      #              possible_related_post.append(line)
+            if len(related_post) > 40:
+                print("find {0} related posts and {1} possible related post".format(str(len(related_post)),
+                                                                                    str(len(possible_related_post))))
                 return related_post
         print("find {0} related posts and {1} possible related post".format(str(len(related_post)), str(len(possible_related_post))))
 
-    return related_post+possible_related_post
+    return related_post#+possible_related_post
 
 
 def get_API_name(input_csv):
@@ -43,11 +45,15 @@ def get_API_name(input_csv):
 app_name = 'langchain'
 API_names = get_API_name("/mnt/ssd/jiyuan/toy_llm_rewrites/questions_api_migration/API_results/deprecated_apis_general_{0}.csv".format(app_name))
 print(API_names)
+API_names=API_names[1:]
 for API_name in API_names:
     output_csv_path = "langchain_post/apis_python_posts_{0}_{1}.csv".format(app_name,API_name)
-    API_related_posts = fetch_so(api_name="profile.start", app_name=app_name, file_dir="/mnt/ssd/dataset/SO_chunk_by_line")
+    API_related_posts = fetch_so(api_name=API_name, app_name=app_name, file_dir="/mnt/ssd/dataset/SO_chunk_by_line")
     with open(output_csv_path, mode="w", newline="", encoding="utf-8") as csvfile:
-        for post in API_related_posts:
-            csvfile.write(post)
+        if API_related_posts:
+            for post in API_related_posts:
+                csvfile.write(post)
+        else:
+            csvfile.write("Body=\"No question find.\"")
 
     print(f"Results have been saved to {output_csv_path}")
