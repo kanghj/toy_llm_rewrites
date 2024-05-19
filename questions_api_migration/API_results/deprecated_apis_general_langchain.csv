@@ -1,4 +1,5 @@
 Function Name,deprecated_info,Function call
+try_load_from_hub,"since="0.0.12",removal="0.3.0"",loading.try_load_from_hub
 AnthropicFunctions,"since=""0.0.54"",removal=""0.3"",alternative_import=""langchain_anthropic.experimental.ChatAnthropicTools"",",anthropic_functions.AnthropicFunctions
 deprecated_function,"since=""2.0.0"",removal=""3.0.0"",pending=False",test_deprecation.deprecated_function
 deprecated_method,"since=""2.0.0"",removal=""3.0.0""",test_deprecation.deprecated_method
