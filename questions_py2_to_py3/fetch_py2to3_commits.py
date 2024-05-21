@@ -41,7 +41,7 @@ def find_commits():
             
         search_size = 0
         page = 1
-        while len(result) < 300:
+        while len(result) < 500:
             params = {
                 "q": "upgrade python python3",
                 # "per_page": per_page,
@@ -138,6 +138,7 @@ def find_commits():
                     print(params)
                     print(response.json())
                     search_size += 500
+                    page = 1
                     break # out of the `attempt` loop
         
     return result

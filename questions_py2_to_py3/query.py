@@ -19,10 +19,11 @@ llm = OpenAI(model_name="gpt-3.5-turbo-instruct")
 
 template = """
 You are to answer questions in the style of a user on StackOverflow answering questions. You MUST provide a code snippet in your answer.
+Ensure that all imports are included in the code.
 You are given the following example transformations (provided in diff format) for rewriting code snippets in your response. Added code is prefixed by +, and removed code prefixed by -.:
 {context}
 
-Answer the following question, but transform your answer based on the above examples (remove code prefixed with -, and add the code prefixed with +, but do not format your answer as a diff).
+Answer the following question, but transform your answer based on the above diffs/transformations (remove code prefixed with -, and add the code prefixed with +, but do NOT format any part of the answer as a diff).
 
 Question: {question}
 
@@ -34,7 +35,7 @@ Answer:
 def ask_question(query):
     retrieved_docs = vector_store.similarity_search(query,k=3)
 
-    formatted_context = "\n".join([doc.page_content[:2000] for doc in retrieved_docs])
+    formatted_context = "\n".join([doc.page_content[:1500] for doc in retrieved_docs])
     final_prompt = template.format(context=formatted_context, question=query)
 
     print('===================')
