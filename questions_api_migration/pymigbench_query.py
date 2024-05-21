@@ -19,6 +19,8 @@ You are given the following example transformations (provided in diff format) fo
 {context}
 
 From these diffs, answer the following question, but apply the same transformations to your answer (remove code prefixed with -, and add the code prefixed with +, but do not format your answer as a diff): {question}
+
+Answer: 
 """
 
 
