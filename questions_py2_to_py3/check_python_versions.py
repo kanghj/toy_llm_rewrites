@@ -21,10 +21,10 @@ def check_python_version():
                 shell=True,
                 stderr=subprocess.STDOUT
             )
-            results[version] = 'Success'
+            results[version] = 1
             print(f"Success: The script works on {version}.\nOutput:\n{output.decode('utf-8')}")
         except subprocess.CalledProcessError as e:
-            results[version] = 'Failed'
+            results[version] = 0
             print(f"Failed: The script does not work on {version}.\nError:\n{e.output.decode('utf-8')}")
 
     return results
@@ -57,34 +57,52 @@ if __name__ == "__main__":
     # read the csv file
 
     file_path = 'tmpdir/script.py'
+
+    # count outcomes
+    outcomes = {}
     with open(sys.argv[1], mode='r', newline='', encoding='utf-8') as infile:
         reader = csv.DictReader(infile)
 
         # extract code-looking stuff
+        total_rows = 0
         for row in reader:
             query = row['query']
-            response = row['rag_response']
+            total_rows += 1
 
-            print('=========Row========')
-            print(response)
+            for type_of_response in ['rag_response', 'no_rag_response']:
+                response = row[type_of_response] 
 
-            code_snippets = extract_code_in_code_tags(response) + extract_code_in_markdown_code_blocks(response)
+                print('=========Row========')
+                print(response)
 
-            if not code_snippets:
-                code_snippets.append(response)
+                code_snippets = extract_code_in_code_tags(response) + extract_code_in_markdown_code_blocks(response)
 
-            print('extracted code snippets of size=' , len(code_snippets))
-            print(code_snippets)
-            
-            for snippet in code_snippets:
-                with open(file_path, 'w') as f:
-                    f.write(snippet)
+                if not code_snippets:
+                    code_snippets.append(response)
 
-                with open(file_path, 'r') as f:
-                    print(f.read())
+                print('extracted code snippets of size=' , len(code_snippets))
+                print(code_snippets)
+                
+                for snippet in code_snippets:
+                    with open(file_path, 'w') as f:
+                        f.write(snippet)
 
-                # check the python versions of the file in script.py
-                check_python_version()
-                print('===================')
+                    with open(file_path, 'r') as f:
+                        print(f.read())
 
+                    # check the python versions of the file in script.py
+                    version_outcomes = check_python_version()
+                    print('===================')
+                    print(version_outcomes)
+
+                    for version, outcome in version_outcomes.items():
+                        if type_of_response not in outcomes:
+                            outcomes[type_of_response] = {}
+                        if version not in outcomes[type_of_response]:
+                            outcomes[type_of_response][version] = 0
+                        outcomes[type_of_response][version] += outcome
+                        
         print("=================================")
+        print("Final Results")
+        print(outcomes)
+
