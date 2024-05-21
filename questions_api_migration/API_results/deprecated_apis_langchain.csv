@@ -1,0 +1,14 @@
+Function Name,deprecated_version,alternative_function,Function call
+__call__,0.1.47,invoke,tools.__call__
+__call__,0.1.7,invoke,chat_models.__call__
+call_as_llm,0.1.7,invoke,chat_models.call_as_llm
+predict,0.1.7,invoke,chat_models.predict
+predict_messages,0.1.7,invoke,chat_models.predict_messages
+__call__,0.1.7,invoke,llms.__call__
+predict,0.1.7,invoke,llms.predict
+predict_messages,0.1.7,invoke,llms.predict_messages
+RunTypeEnum,0.1.0,Use string instead.,schemas.RunTypeEnum
+__call__,0.1.0,invoke,base.__call__
+run,0.1.0,invoke,base.run
+apply,0.1.0,batch,base.apply
+get_table_names,0.0.1,get_usable_table_names,sql_database.get_table_names

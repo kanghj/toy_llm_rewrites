@@ -1,26 +1,42 @@
-import csv
+import os
+import re
 
-title_index = None
-question_body_index = None
-answer_body_index = None
-with open('SO.csv', mode='r', newline='', encoding='utf-8') as infile:
-    reader = csv.reader(infile)
-    headers = next(reader) 
+
+def parsing_with_csv(input_SO, output_query):
+    question_list=[]
+    with open(input_SO, mode='r', encoding='utf-8') as infile:
+        for line in infile:
+            pattern = r'Body="([^"]*)"'
+
+            # Search for the pattern in the xml_string
+            match = re.search(pattern, line)
+
+            # If a match is found, return the captured group (text inside quotes)
+            if match:
+                question_list.append(match.group(1))
+    with open(output_query, mode="w") as outfile:
+        for question in question_list:
+            outfile.write(question+"\n")
+
+    print('Successfully created {0} with {1} questions'.format(output_query, len(question_list)))
+
+
+def list_files_in_directory(directory_path):
     try:
-        title_index = headers.index('title')
-        question_body_index = headers.index('question_body')
-        answer_body_index = headers.index('answer_body')
-    except ValueError as e:
-        raise ValueError(f"Missing expected column: {str(e)}")
+        # List all files and directories in the specified directory
+        entries = os.listdir(directory_path)
 
-    with open('query.csv', mode='w', newline='', encoding='utf-8') as outfile:
-        writer = csv.writer(outfile)
+        # Filter out directories, keeping only files
+        files = [entry for entry in entries if os.path.isfile(os.path.join(directory_path, entry))]
 
-        writer.writerow(['query', 'original_answer'])
-        for row in reader:
-            query = f"{row[title_index]}: {row[question_body_index]}"
+        return files
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return []
 
-            answer_body = row[answer_body_index]
-            writer.writerow([query, answer_body])
 
-print(f'Successfully created query.csv')
+folder = "/mnt/ssd/jiyuan/toy_llm_rewrites/questions_api_migration/langchain_post/"
+api_related_question_files = list_files_in_directory(folder)
+
+for file in api_related_question_files:
+    parsing_with_csv(folder+file, file[:-4]+".txt")
