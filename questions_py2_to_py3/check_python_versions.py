@@ -93,7 +93,7 @@ if __name__ == "__main__":
             for type_of_response in ['code', 'rag_response', 'no_rag_response']:
                 response = row[type_of_response] 
 
-                print('=========Row========')
+                # print('=========Row========')
                 # print(response)
 
                 if type_of_response == 'code':
@@ -104,35 +104,36 @@ if __name__ == "__main__":
                 if not code_snippets:
                     code_snippets.append(response)
 
-                print('extracted code snippets of size=' , len(code_snippets))
+                # print('extracted code snippets of size=' , len(code_snippets))
                 # print(code_snippets)
                 
-                for snippet in code_snippets:
-                    with open(file_path, 'w') as f:
-                        f.write(snippet)
+                # for snippet in code_snippets:
+                snippet = code_snippets[0] # let's be lazy and just check one code snippet
+                with open(file_path, 'w') as f:
+                    f.write(snippet)
 
-                    # with open(file_path, 'r') as f:
-                    #     print(f.read())
+                # with open(file_path, 'r') as f:
+                #     print(f.read())
 
-                    # check the python versions of the file in script.py
-                    version_outcomes, version_errors = check_python_version()
-                    print('===================')
-                    print(version_outcomes)
+                # check the python versions of the file in script.py
+                version_outcomes, version_errors = check_python_version()
+                # print('===================')
+                # print(version_outcomes)
 
-                    for version, outcome in version_outcomes.items():
-                        if type_of_response not in outcomes:
-                            outcomes[type_of_response] = {}
-                        if version not in outcomes[type_of_response]:
-                            outcomes[type_of_response][version] = 0
-                        outcomes[type_of_response][version] += outcome
+                for version, outcome in version_outcomes.items():
+                    if type_of_response not in outcomes:
+                        outcomes[type_of_response] = {}
+                    if version not in outcomes[type_of_response]:
+                        outcomes[type_of_response][version] = 0
+                    outcomes[type_of_response][version] += outcome
 
-                    for version, error in version_errors.items():
-                        if type_of_response not in error_types:
-                            error_types[type_of_response] = {}
-                        if version not in error_types[type_of_response]:
-                            error_types[type_of_response][version] = []
-                        error_types[type_of_response][version].append(error)
-                    break
+                for version, error in version_errors.items():
+                    if type_of_response not in error_types:
+                        error_types[type_of_response] = {}
+                    if version not in error_types[type_of_response]:
+                        error_types[type_of_response][version] = []
+                    error_types[type_of_response][version].append(error)
+                    # break
 
                 if len(version_outcomes) > 0:
                     output_row[type_of_response + '_py2_outcome'] = version_outcomes['py2_env']
@@ -143,7 +144,7 @@ if __name__ == "__main__":
                     if 'py3_env' in version_errors:
                         output_row[type_of_response + '_py3_err'] = version_errors['py3_env']
 
-            print(output_row)
+            # print(output_row)
             writer.writerow(output_row)
 
         print("=================================")
