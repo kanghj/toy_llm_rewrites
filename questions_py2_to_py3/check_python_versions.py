@@ -64,21 +64,22 @@ if __name__ == "__main__":
         print("Usage: python check_python_version.py <csv file with answers>")
         sys.exit(1)
 
-    # read the csv file
-
     file_path = 'tmpdir/script.py'
 
-    # count outcomes
     outcomes = {}
 
     error_types = {}
     with open(sys.argv[1], mode='r', newline='', encoding='utf-8') as infile,\
-         open(sys.argv[1].split('.csv')[0] +'_output.csv', 'w') as outfile:
+         open(sys.argv[1].split('.csv')[0] +'_executions.csv', 'w') as outfile:
+
         reader = csv.DictReader(infile)
         writer = csv.DictWriter(outfile, fieldnames=reader.fieldnames + 
-                                ['rag_response_py2_outcome', 'rag_response_py3_outcome', 
-                                 'no_rag_response_py2_outcome', 'no_rag_response_py3_outcome',
+                                [
+                                 'code_py2_outcome', 'code_py3_outcome',
+                                 'code_py2_err', 'code_py3_err',
+                                 'rag_response_py2_outcome', 'rag_response_py3_outcome', 
                                  'rag_response_py2_err', 'rag_response_py3_err', 
+                                 'no_rag_response_py2_outcome', 'no_rag_response_py3_outcome',
                                  'no_rag_response_py2_err', 'no_rag_response_py3_err'])
 
         writer.writeheader()
@@ -89,13 +90,16 @@ if __name__ == "__main__":
             total_rows += 1
 
             output_row = row.copy()
-            for type_of_response in ['rag_response', 'no_rag_response']:
+            for type_of_response in ['code', 'rag_response', 'no_rag_response']:
                 response = row[type_of_response] 
 
                 print('=========Row========')
                 # print(response)
 
-                code_snippets = extract_code_in_code_tags(response) + extract_code_in_markdown_code_blocks(response)
+                if type_of_response == 'code':
+                    code_snippets = [response]
+                else:    
+                    code_snippets = extract_code_in_code_tags(response) + extract_code_in_markdown_code_blocks(response)
 
                 if not code_snippets:
                     code_snippets.append(response)
@@ -138,8 +142,9 @@ if __name__ == "__main__":
                         output_row[type_of_response + '_py2_err'] = version_errors['py2_env']
                     if 'py3_env' in version_errors:
                         output_row[type_of_response + '_py3_err'] = version_errors['py3_env']
-                print(output_row)
-                writer.writerow(output_row)
+
+            print(output_row)
+            writer.writerow(output_row)
 
         print("=================================")
         print("Final Results")
