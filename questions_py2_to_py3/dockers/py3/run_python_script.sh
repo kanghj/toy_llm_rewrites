@@ -1,2 +1,2 @@
 #!/bin/bash
-python /workspace/script.py
+timeout 10 python /workspace/script.py
