@@ -3,6 +3,7 @@ from langchain_openai import OpenAIEmbeddings
 from langchain.chains import RetrievalQA
 from langchain_community.llms import OpenAI
 from langchain.prompts import PromptTemplate
+import subprocess
 import openai
 import os
 import html
@@ -16,31 +17,47 @@ embedding_model = OpenAIEmbeddings()
 vector_store = FAISS.load_local("faiss_pymigbench_index_langchain", embedding_model,
                                 allow_dangerous_deserialization=True)
 
-template = """
-You are given the following example transformations (provided in diff format) for rewriting Python code snippets. From these diffs, answer the following question. When answer the question, try to give an example code.
-However, please do not repeat the question. Please do not repeat the question! Questions are given in html format: 
+template = """You are given the following examples for rewriting Python code snippets. The new APIs and the detailed descriptions are shown below. 
+From on the new API information, answer the following question. When answer the question, try to give an example code. 
+Questions are given in html format: 
 
 {question}.
 
-Here is the diff:
+Here is the new API description:
 {context}
+
+Answer:
 """
+pwd = os.getcwd()
 
 
-def oracle_to_check_python_code(answer, default_return=False):
+def execution_in_docker(version):
+    try:
+        print(f"Testing...")
+        print("docker", "run", "--rm", "-v", pwd + "/docker/tmp:/workplace", "py3_env")
+        output = subprocess.check_output(
+            ' '.join(["docker", "run", "--rm", "-v", pwd + "/docker/tmp:/workplace", "py3_env"]),
+            shell=True,
+            stderr=subprocess.STDOUT
+        )
+        print(f"Success: The script works on {version}.\nOutput:\n{output.decode('utf-8')}")
+        return "True"
+    except subprocess.CalledProcessError as e:
+        print(f"Failed: The script does not work on {version}.\nError:\n{e.output.decode('utf-8')}")
+        return e.output.decode('utf-8')
+
+
+def oracle_to_check_python_code(answer, version="no rag"):
     pattern = r'```python\n(.*?)```'
+    cleaned_code = ""
     if "```python" in answer:
         matches = re.findall(pattern, answer, re.DOTALL)
-        cleaned_code = ""
         for match in matches:
             cleaned_code = "\n".join(line.lstrip('+') for line in match.split('\n'))
-        print(cleaned_code)
-        try:
-            exec(cleaned_code)
-            return True
-        except Exception as e:
-            return False
-    return default_return
+        print("code extracted: \n" + cleaned_code)
+    with open(os.path.join(os.getcwd(), "docker/tmp/a.py"), 'w') as i_f:
+        i_f.write(cleaned_code)
+    return "False:" + execution_in_docker(version)
 
 
 def get_response_content(response):
@@ -67,25 +84,26 @@ def ask_question(query_in, related_API):
     print("Related API:", related_API)
     retrieved_docs = vector_store.similarity_search(related_API, k=3)
 
-    formatted_context = "\n".join([doc.page_content[:2000] for doc in retrieved_docs])
+    formatted_context = "\n".join([doc.page_content[:2000] for doc in retrieved_docs if not doc.page_content.startswith("-")])
+
     final_prompt = template.format(context=formatted_context, question=query)
 
     print('===================')
-    # print("\nPrompt to LLM")
-    # print(final_prompt, flush=True)
+    print("\nPrompt to LLM")
+    print(final_prompt, flush=True)
     print('===================')
     print("Generated Answer:")
-    rag_response = get_response_content(send_to_OpenAI(conversation=final_prompt, model="gpt-3.5-turbo-0125"))
+    rag_response = get_response_content(send_to_OpenAI(conversation=final_prompt[:12000], model="gpt-3.5-turbo-0125"))
     print(rag_response)
     print('===================', flush=True)
 
     # if we didn't use RAG,
-    no_rag_response = get_response_content(send_to_OpenAI(query, model="gpt-3.5-turbo-0125"))
+    no_rag_response = get_response_content(send_to_OpenAI(query[:12000], model="gpt-3.5-turbo-0125"))
     print('response without RAG:')
     print(no_rag_response)
     print('===================')
-    return (rag_response, oracle_to_check_python_code(rag_response, default_return=True)), (
-    no_rag_response, oracle_to_check_python_code(no_rag_response, default_return=False))
+    return (rag_response, oracle_to_check_python_code(rag_response, version="rag")), (
+        no_rag_response, oracle_to_check_python_code(no_rag_response, version="no rag"))
 
 
 # ask_question("""
@@ -98,10 +116,13 @@ def answer_generated_from_llm(query_folder):
     queries = [entry for entry in entries if os.path.isfile(os.path.join(query_folder, entry))]
     for query in queries:
         print("query:", query)
+        if os.path.exists(f"results/response_rag_{query}.csv"):
+            print(f"{query} already done")
+            continue
         with open(os.path.join(query_folder, query), 'r') as i_f, \
-                open('response_rag.csv', 'w+') as o_f_rag, \
-                open('response_no_rag.csv', 'w+') as o_f_no_rag, \
-                open('query_responses.csv', 'w+') as full:
+                open(f"results/response_rag_{query}.csv", 'w+') as o_f_rag, \
+                open(f'results/response_no_rag_{query}.csv', 'w+') as o_f_no_rag, \
+                open(f'results/query_responses_{query}.csv', 'w+') as full:
             for reader in i_f:
                 writer_rag = csv.writer(o_f_rag)
                 writer_no_rag = csv.writer(o_f_no_rag)
@@ -114,6 +135,7 @@ def answer_generated_from_llm(query_folder):
                 writer_rag.writerow(rag)
                 writer_no_rag.writerow(no_rag)
                 writer_full.writerow([reader, rag, no_rag])
+        print(f"{query} finished!")
 
 
 answer_generated_from_llm("/mnt/ssd/jiyuan/toy_llm_rewrites/questions_api_migration/langchain_question")
